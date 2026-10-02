@@ -6,14 +6,14 @@ import Link from 'next/link';
 
 export default function NewTransactionPage() {
   const [weight, setWeight] = useState<number | ''>('');
-  const [serviceId, setServiceId] = useState('cuci_komplit');
+  const [serviceId, setServiceId] = useState('cuci_setrika');
   const [paymentStatus, setPaymentStatus] = useState('lunas');
 
   // Dummy data untuk layanan (bisa diambil dari API nanti)
   const services = [
-    { id: 'cuci_komplit', name: 'Cuci Komplit', price: 6000 },
-    { id: 'cuci_setrika', name: 'Cuci & Setrika', price: 7000 },
-    { id: 'setrika_saja', name: 'Setrika Saja', price: 5000 },
+    { id: 'cuci_setrika', name: 'Cuci & Setrika (Komplit)', price: 6000 },
+    { id: 'cuci_lipat', name: 'Cuci Lipat (Cuci Saja)', price: 4000 },
+    { id: 'setrika_saja', name: 'Setrika Saja', price: 3000 },
   ];
 
   const selectedService = services.find(s => s.id === serviceId);
@@ -21,8 +21,8 @@ export default function NewTransactionPage() {
   const total = (Number(weight) || 0) * pricePerKg;
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 font-sans pb-12">
-      <div className="mx-auto w-full max-w-[480px]">
+    <div className="min-h-screen bg-slate-50 flex justify-center py-6 px-4 font-sans">
+      <div className="w-full max-w-md bg-white rounded-[2rem] shadow-sm overflow-hidden flex flex-col p-6 sm:p-8">
         
         {/* Header Navigation */}
         <div className="flex items-center justify-between mb-8 pt-2">
@@ -47,8 +47,8 @@ export default function NewTransactionPage() {
           <p className="text-sm text-slate-500">Lengkapi detail transaksi untuk membuat pesanan baru.</p>
         </div>
 
-        {/* Main Form Card */}
-        <div className="rounded-3xl bg-white p-6 sm:p-8 shadow-sm border border-slate-100">
+        {/* Main Form */}
+        <div className="mt-2">
           <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
             
             {/* Nama Pelanggan */}

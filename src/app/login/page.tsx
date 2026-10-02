@@ -8,13 +8,13 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 font-sans">
-      <div className="w-full max-w-[420px]">
+    <div className="min-h-screen bg-slate-50 flex justify-center py-6 px-4 font-sans">
+      <div className="w-full max-w-md bg-white rounded-[2rem] shadow-sm overflow-hidden flex flex-col p-6 sm:p-8">
         {/* Header Branding */}
         <HeaderBrand subtitle="Masuk ke Sistem Pengelola Laundry Kiloan" />
 
-        {/* Main Card */}
-        <div className="mt-8 rounded-3xl bg-white p-6 sm:p-8 shadow-sm border border-slate-100">
+        {/* Main Form */}
+        <div className="mt-8">
           <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
             
             {/* Email / Username Field */}
