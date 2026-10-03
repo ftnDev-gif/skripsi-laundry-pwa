@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { ArrowLeft, Droplets, QrCode, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
 
@@ -8,6 +9,7 @@ export default function NewTransactionPage() {
   const [weight, setWeight] = useState<number | ''>('');
   const [serviceId, setServiceId] = useState('cuci_setrika');
   const [paymentStatus, setPaymentStatus] = useState('lunas');
+  const router = useRouter();
 
   // Dummy data untuk layanan (bisa diambil dari API nanti)
   const services = [
@@ -185,7 +187,8 @@ export default function NewTransactionPage() {
             {/* Submit Button */}
             <div className="pt-2">
               <button 
-                type="submit" 
+                type="button" 
+                onClick={() => router.push('/transactions/receipt')}
                 className="flex w-full items-center justify-center space-x-2 rounded-2xl bg-blue-600 py-3.5 text-sm font-bold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 transition-all active:scale-[0.98]"
               >
                 <QrCode className="h-5 w-5" />

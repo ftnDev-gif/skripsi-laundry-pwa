@@ -67,10 +67,10 @@ export default function ReceiptPage() {
 
           {/* QR Code Tracking Section */}
           <div className="p-6 bg-slate-50/50 flex flex-col items-center border-t border-slate-100">
-            <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm mb-3">
+            <Link href="/tracking/INV-202609-001" className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm mb-3 hover:shadow-md transition-shadow">
               {/* Dummy QR Code */}
               <QrCode className="w-32 h-32 text-slate-800" strokeWidth={1.5} />
-            </div>
+            </Link>
             <p className="text-xs text-slate-500 text-center max-w-[200px]">
               Pindai QR ini untuk cek progres cucian Anda
             </p>

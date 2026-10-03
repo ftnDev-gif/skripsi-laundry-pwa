@@ -1,11 +1,13 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import HeaderBrand from '@/components/HeaderBrand';
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
+  const router = useRouter();
 
   return (
     <div className="min-h-screen bg-slate-50 flex justify-center py-6 px-4 font-sans">
@@ -80,7 +82,8 @@ export default function LoginPage() {
             {/* Submit Button */}
             <div className="pt-2">
               <button 
-                type="submit" 
+                type="button" 
+                onClick={() => router.push('/dashboard')}
                 className="w-full rounded-2xl bg-blue-600 py-3.5 text-center text-sm font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 transition-all active:scale-[0.98]"
               >
                 Masuk ke Dashboard

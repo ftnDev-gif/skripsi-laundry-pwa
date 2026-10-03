@@ -57,7 +57,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Card 2: Pendapatan */}
-          <div className="bg-slate-50 rounded-3xl p-5 border border-slate-100 shadow-sm">
+          <Link href="/reports" className="bg-slate-50 rounded-3xl p-5 border border-slate-100 shadow-sm block hover:bg-slate-100 transition-colors">
             <div className="flex justify-between items-start mb-4">
               <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-100/50">
                 <Inbox className="h-5 w-5 text-emerald-600" />
@@ -68,7 +68,7 @@ export default function DashboardPage() {
               <h3 className="text-xl font-bold text-slate-900 mb-0.5">Rp 120.000</h3>
               <p className="text-sm text-slate-500">Pendapatan</p>
             </div>
-          </div>
+          </Link>
         </div>
 
         {/* CTA Button */}
