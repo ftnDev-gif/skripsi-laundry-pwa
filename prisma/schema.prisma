@@ -1,0 +1,73 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// 1. Akun Pengelola / Kasir (US-01)
+model User {
+  id           String        @id @default(uuid())
+  name         String
+  username     String        @unique
+  password     String
+  transactions Transaction[] // Menampung riwayat transaksi yang ditangani kasir ini
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+// 2. Data Pelanggan Tersimpan
+model Customer {
+  id           String        @id @default(uuid())
+  name         String
+  phone        String        @unique // Nomor WhatsApp untuk gateway notifikasi
+  address      String?
+  transactions Transaction[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+// 3. Status Tahapan Cucian
+enum LaundryStatus {
+  ANTREAN
+  DICUCI
+  DISETRIKA
+  SIAP_DIAMBIL
+  SELESAI
+}
+
+// 4. Status Pembayaran
+enum PaymentStatus {
+  LUNAS
+  KASBON
+}
+
+// 5. Tabel Transaksi / Pesanan
+model Transaction {
+  id            String        @id @default(uuid())
+  invoiceNumber String        @unique // Contoh: INV-202610-001
+  
+  // Relasi Kasir (User ID dipertahankan untuk skalabilitas & jejak audit)
+  userId        String
+  user          User          @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  // Relasi ke Pelanggan
+  customerId    String
+  customer      Customer      @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  
+  // Rincian Layanan & Perhitungan
+  serviceType   String        // Cuci & Setrika, Cuci Lipat, atau Setrika Saja
+  weight        Float         // Berat dalam satuan Kg
+  pricePerKg    Int           // Tarif per Kg
+  totalPrice    Int           // Total tagihan
+  
+  // Status Operasional & Finansial
+  status        LaundryStatus @default(ANTREAN)
+  paymentStatus PaymentStatus @default(LUNAS)
+  
+  // Jejak Waktu
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
