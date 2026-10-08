@@ -48,9 +48,9 @@ export default function ScanPage() {
         // Berhasil, redirect ke tracking
         setTimeout(() => {
           if (scannerRef.current && scannerRef.current.isScanning) {
-             scannerRef.current.stop().then(() => router.push(`/tracking/${invoiceId}`)).catch(() => router.push(`/tracking/${invoiceId}`));
+             scannerRef.current.stop().then(() => router.push(`/scan/${invoiceId}`)).catch(() => router.push(`/scan/${invoiceId}`));
           } else {
-             router.push(`/tracking/${invoiceId}`);
+             router.push(`/scan/${invoiceId}`);
           }
         }, 1500);
       } else {
