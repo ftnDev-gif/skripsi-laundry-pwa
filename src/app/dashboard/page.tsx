@@ -108,7 +108,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="min-h-screen w-full bg-slate-50 flex justify-center py-6 px-4">
-      <div className="w-full max-w-md bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col gap-6">
+      <div className="w-full max-w-md bg-white rounded-[2rem] p-6 shadow-sm border border-slate-100 flex flex-col gap-6">
         
         {/* Header Area */}
         <header className="flex items-center justify-between">
@@ -125,7 +125,7 @@ export default async function DashboardPage() {
           <div>
             <p className="text-sm text-slate-500 mb-1">Selamat pagi, Kasir!</p>
             <div className="flex items-end justify-between">
-              <h2 className="text-2xl font-bold tracking-tight text-slate-900">
+              <h2 className="text-2xl font-bold text-slate-900">
                 Ringkasan hari ini
               </h2>
               <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2.5 py-1 rounded-lg">

@@ -8,34 +8,36 @@ import {
   Check, 
   Receipt, 
   Printer,
-  HandCoins
+  HandCoins,
+  Droplets
 } from 'lucide-react';
 import HeaderBrand from '@/components/HeaderBrand';
 
 export default function ReportsPage() {
   return (
-    <div className="min-h-screen bg-slate-50 flex justify-center py-6 px-4 font-sans">
+    <div className="min-h-screen w-full bg-slate-50 flex justify-center py-6 px-4">
       <div className="w-full max-w-md bg-white rounded-[2rem] p-6 shadow-sm border border-slate-100 flex flex-col gap-6">
         
-        {/* Header */}
+        {/* Top Header */}
         <div className="flex items-center justify-between">
-          <Link 
-            href="/dashboard" 
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition-colors"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
           <HeaderBrand layout="row" subtitle="KASIR" />
+          <div className="bg-blue-50 text-blue-600 px-3 py-1.5 rounded-full text-[10px] font-bold tracking-widest uppercase shrink-0">
+            LAPORAN
+          </div>
         </div>
 
-        {/* Title */}
-        <div>
-          <h2 className="text-[10px] font-bold tracking-widest text-blue-600 uppercase mb-1">
-            LAPORAN KEUANGAN
-          </h2>
-          <h1 className="text-2xl font-bold text-slate-900">
-            Rekap & Kasbon
-          </h1>
+        {/* Title Section */}
+        <div className="flex gap-4 items-center">
+          <Link 
+            href="/dashboard" 
+            className="w-10 h-10 shrink-0 flex items-center justify-center bg-white border border-slate-200 rounded-full text-slate-600 hover:bg-slate-50 transition-colors shadow-sm"
+          >
+            <ArrowLeft size={20} />
+          </Link>
+          <div>
+            <p className="text-xs font-bold text-slate-400 tracking-widest uppercase mb-0.5">LAPORAN KEUANGAN</p>
+            <h2 className="text-2xl font-bold text-slate-900">Rekap & Kasbon</h2>
+          </div>
         </div>
 
         {/* Filter Tab */}

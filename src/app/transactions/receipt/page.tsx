@@ -32,7 +32,7 @@ export default async function ReceiptPage({
   const trackingUrl = `${baseUrl}/tracking/${transaction.invoiceNumber}`;
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 md:py-8 font-sans">
+    <div className="min-h-screen bg-slate-50 p-4 md:py-8">
       <div className="max-w-md mx-auto">
         <div className="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden mb-6 print:shadow-none print:border-none print:rounded-none print:mb-0">
           

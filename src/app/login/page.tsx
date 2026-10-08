@@ -10,7 +10,7 @@ export default function LoginPage() {
   const router = useRouter();
 
   return (
-    <div className="min-h-screen bg-slate-50 flex justify-center py-6 px-4 font-sans">
+    <div className="min-h-screen w-full bg-slate-50 flex justify-center py-6 px-4">
       <div className="w-full max-w-md bg-white rounded-[2rem] shadow-sm overflow-hidden flex flex-col p-6 sm:p-8">
         {/* Header Branding */}
         <HeaderBrand subtitle="Masuk ke Sistem Pengelola Laundry Kiloan" />

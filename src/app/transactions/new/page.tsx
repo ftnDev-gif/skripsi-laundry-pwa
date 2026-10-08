@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft, Droplets, QrCode, ChevronDown, Loader2, Pencil } from 'lucide-react';
 import Link from 'next/link';
 import { createTransaction, getCustomers, updateCustomerPhone } from '@/actions/transaction';
+import HeaderBrand from '@/components/HeaderBrand';
 
 type Customer = {
   id: string;
@@ -125,30 +126,29 @@ export default function NewTransactionPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex justify-center py-6 px-4 font-sans">
-      <div className="w-full max-w-md bg-white rounded-[2rem] shadow-sm overflow-hidden flex flex-col p-6 sm:p-8">
+    <div className="min-h-screen w-full bg-slate-50 flex justify-center py-6 px-4">
+      <div className="w-full max-w-md bg-white rounded-[2rem] p-6 shadow-sm border border-slate-100 flex flex-col gap-6">
         
-        {/* Header Navigation */}
-        <div className="flex items-center justify-between mb-8 pt-2">
-          <Link href="/dashboard" className="flex h-11 w-11 items-center justify-center rounded-full bg-white shadow-sm border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2">
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
-          <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-600 shadow-md shadow-blue-600/20">
-              <Droplets className="h-6 w-6 text-white" />
-            </div>
-            <div className="text-left">
-              <p className="text-[10px] font-bold text-slate-400 tracking-wider uppercase">Kasir</p>
-              <p className="text-sm font-bold text-slate-900 leading-none mt-0.5">Sayangan Laundry</p>
-            </div>
+        {/* Top Header */}
+        <div className="flex items-center justify-between">
+          <HeaderBrand layout="row" subtitle="KASIR" />
+          <div className="bg-blue-50 text-blue-600 px-3 py-1.5 rounded-full text-[10px] font-bold tracking-widest uppercase shrink-0">
+            TRANSAKSI
           </div>
         </div>
 
         {/* Title Section */}
-        <div className="mb-6">
-          <p className="text-sm font-medium text-slate-500 mb-1">Data pelanggan dan cucian</p>
-          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight mb-2">Form Transaksi Baru</h1>
-          <p className="text-sm text-slate-500">Lengkapi detail transaksi untuk membuat pesanan baru.</p>
+        <div className="flex gap-4 items-center">
+          <Link 
+            href="/dashboard" 
+            className="w-10 h-10 shrink-0 flex items-center justify-center bg-white border border-slate-200 rounded-full text-slate-600 hover:bg-slate-50 transition-colors shadow-sm"
+          >
+            <ArrowLeft size={20} />
+          </Link>
+          <div>
+            <p className="text-xs font-bold text-slate-400 tracking-widest uppercase mb-0.5">Data pelanggan dan cucian</p>
+            <h2 className="text-2xl font-bold text-slate-900">Form Transaksi Baru</h2>
+          </div>
         </div>
 
         {/* Main Form */}
@@ -409,7 +409,7 @@ export default function NewTransactionPage() {
                   {weight ? `${weight} kg × Rp ${new Intl.NumberFormat('id-ID').format(pricePerKg)}` : 'Pilih berat & layanan'}
                 </span>
               </div>
-              <span className="text-2xl font-black text-blue-600 tracking-tight">
+              <span className="text-2xl font-bold text-blue-600 tracking-tight">
                 Rp {new Intl.NumberFormat('id-ID').format(total)}
               </span>
             </div>

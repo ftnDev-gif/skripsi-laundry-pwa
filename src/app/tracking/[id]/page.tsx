@@ -1,19 +1,43 @@
 import React from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Clock, Droplets, Shirt, CheckCircle, MessageCircle, Phone, Sparkles, Check, AlertCircle } from 'lucide-react';
+import { Clock, Droplets, Shirt, CheckCircle, MessageCircle, Phone, Sparkles, Check, AlertCircle } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
 import { notFound } from 'next/navigation';
 import { LaundryStatus } from '@prisma/client';
+import HeaderBrand from '@/components/HeaderBrand';
 
 export const dynamic = 'force-dynamic';
 
-const STEPS = [
-  { id: LaundryStatus.ANTREAN, title: 'Antrean', subtitle: 'Pesanan diterima', activeIcon: Clock },
-  { id: LaundryStatus.DICUCI, title: 'Dicuci', subtitle: 'Proses cuci', activeIcon: Droplets },
-  { id: LaundryStatus.DISETRIKA, title: 'Disetrika', subtitle: 'Sedang disetrika', activeIcon: Shirt },
-  { id: LaundryStatus.SIAP_DIAMBIL, title: 'Siap Diambil', subtitle: 'Menunggu diambil', activeIcon: CheckCircle },
-  { id: LaundryStatus.SELESAI, title: 'Selesai', subtitle: 'Sudah diambil', activeIcon: Sparkles },
-];
+const getStepsForService = (serviceType: string) => {
+  const typeLower = serviceType.toLowerCase();
+  
+  if (typeLower.includes('setrika saja') || typeLower.includes('hanya setrika')) {
+    return [
+      { id: LaundryStatus.ANTREAN, title: 'Antrean', subtitle: 'Pesanan diterima', activeIcon: Clock },
+      { id: LaundryStatus.DISETRIKA, title: 'Disetrika', subtitle: 'Sedang disetrika', activeIcon: Shirt },
+      { id: LaundryStatus.SIAP_DIAMBIL, title: 'Siap Diambil', subtitle: 'Menunggu diambil', activeIcon: CheckCircle },
+      { id: LaundryStatus.SELESAI, title: 'Selesai', subtitle: 'Sudah diambil', activeIcon: Sparkles },
+    ];
+  }
+  
+  if (typeLower.includes('lipat') || typeLower.includes('kering')) {
+    return [
+      { id: LaundryStatus.ANTREAN, title: 'Antrean', subtitle: 'Pesanan diterima', activeIcon: Clock },
+      { id: LaundryStatus.DICUCI, title: 'Dicuci', subtitle: 'Proses cuci', activeIcon: Droplets },
+      { id: LaundryStatus.DISETRIKA, title: 'Dilipat', subtitle: 'Sedang dilipat', activeIcon: Shirt },
+      { id: LaundryStatus.SIAP_DIAMBIL, title: 'Siap Diambil', subtitle: 'Menunggu diambil', activeIcon: CheckCircle },
+      { id: LaundryStatus.SELESAI, title: 'Selesai', subtitle: 'Sudah diambil', activeIcon: Sparkles },
+    ];
+  }
+  
+  return [
+    { id: LaundryStatus.ANTREAN, title: 'Antrean', subtitle: 'Pesanan diterima', activeIcon: Clock },
+    { id: LaundryStatus.DICUCI, title: 'Dicuci', subtitle: 'Proses cuci', activeIcon: Droplets },
+    { id: LaundryStatus.DISETRIKA, title: 'Disetrika', subtitle: 'Sedang disetrika', activeIcon: Shirt },
+    { id: LaundryStatus.SIAP_DIAMBIL, title: 'Siap Diambil', subtitle: 'Menunggu diambil', activeIcon: CheckCircle },
+    { id: LaundryStatus.SELESAI, title: 'Selesai', subtitle: 'Sudah diambil', activeIcon: Sparkles },
+  ];
+};
 
 export default async function TrackingPage({
   params,
@@ -29,12 +53,12 @@ export default async function TrackingPage({
 
   if (!transaction) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 font-sans text-slate-900">
+      <div className="min-h-screen w-full bg-slate-50 flex items-center justify-center p-4">
         <div className="bg-white p-8 rounded-[2rem] shadow-sm text-center max-w-md w-full border border-slate-100">
           <div className="w-16 h-16 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <AlertCircle size={32} />
           </div>
-          <h1 className="text-xl font-extrabold text-slate-900 mb-2">Transaksi Tidak Ditemukan</h1>
+          <h1 className="text-xl font-bold text-slate-900 mb-2">Transaksi Tidak Ditemukan</h1>
           <p className="text-sm font-medium text-slate-500 mb-6 leading-relaxed">
             Mohon maaf, kami tidak dapat menemukan pesanan dengan nomor invoice <strong className="text-slate-800">{id}</strong>. Pastikan nomor sudah benar.
           </p>
@@ -46,7 +70,16 @@ export default async function TrackingPage({
     );
   }
 
-  const currentStep = STEPS.findIndex(s => s.id === transaction.status);
+  const steps = getStepsForService(transaction.serviceType);
+  let currentStep = steps.findIndex(s => s.id === transaction.status);
+  
+  // Jika status saat ini ternyata adalah tahap yang di-skip (misal 'DICUCI' pada Setrika Saja), 
+  // kita fallback ke tahap sebelumnya atau set 0.
+  if (currentStep === -1) {
+    if (transaction.status === LaundryStatus.DICUCI) currentStep = 0; // fallback to Antrean
+    else if (transaction.status === LaundryStatus.DISETRIKA) currentStep = 1; 
+    else currentStep = 0;
+  }
   
   const formattedDate = new Intl.DateTimeFormat('id-ID', {
     day: 'numeric',
@@ -61,38 +94,21 @@ export default async function TrackingPage({
   }).format(transaction.totalPrice);
 
   return (
-    <div className="min-h-screen bg-slate-50 flex justify-center py-6 px-4 font-sans text-slate-900">
+    <div className="min-h-screen w-full bg-slate-50 flex justify-center py-6 px-4">
       <div className="w-full max-w-md bg-white rounded-[2rem] p-6 shadow-sm border border-slate-100 flex flex-col gap-6">
         
         {/* Top Header */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-sm shrink-0">
-              <Droplets size={24} />
-            </div>
-            <div>
-              <p className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mb-0.5">Kasir</p>
-              <h1 className="text-base font-extrabold text-slate-900 leading-tight">Sayangan Laundry</h1>
-            </div>
-          </div>
+          <HeaderBrand layout="row" subtitle="PELANGGAN" />
           <div className="bg-blue-50 text-blue-600 px-3 py-1.5 rounded-full text-[10px] font-bold tracking-widest uppercase shrink-0">
-            Tracking
+            PELACAKAN
           </div>
         </div>
 
         {/* Title Section */}
-        <div className="flex gap-4 items-center">
-          {/* We might not want the back button if accessed externally, but we keep it pointing to / if they want to exit */}
-          <Link 
-            href="/" 
-            className="w-10 h-10 shrink-0 flex items-center justify-center bg-white border border-slate-200 rounded-full text-slate-600 hover:bg-slate-50 transition-colors shadow-sm"
-          >
-            <ArrowLeft size={20} />
-          </Link>
-          <div>
-            <p className="text-xs font-semibold text-slate-400 mb-0.5">Pelacakan pesanan</p>
-            <h2 className="text-2xl font-extrabold text-slate-900">Status cucian kamu</h2>
-          </div>
+        <div>
+          <p className="text-xs font-bold text-slate-400 tracking-widest uppercase mb-0.5">Pelacakan pesanan</p>
+          <h2 className="text-2xl font-bold text-slate-900">Status cucian kamu</h2>
         </div>
 
         {/* Kartu Informasi Resi Biru */}
@@ -102,7 +118,7 @@ export default async function TrackingPage({
           </div>
           
           <p className="text-[11px] font-bold text-blue-200 tracking-wider uppercase mb-1">Nomor Resi</p>
-          <h3 className="text-2xl font-extrabold tracking-wide mb-8">{transaction.invoiceNumber}</h3>
+          <h3 className="text-2xl font-bold tracking-wide mb-8">{transaction.invoiceNumber}</h3>
           
           <div className="flex justify-between items-end">
             <div>
@@ -120,26 +136,32 @@ export default async function TrackingPage({
         <div>
           <p className="text-[11px] font-bold text-slate-400 tracking-widest uppercase mb-1">Progress</p>
           <div className="flex justify-between items-center mb-3">
-            <h3 className="text-xl font-extrabold text-slate-900">Tahapan cucian</h3>
+            <h3 className="text-lg font-bold text-slate-900">Tahapan cucian</h3>
             <div className="bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-xs font-bold">
-              Tahap {currentStep + 1} dari {STEPS.length}
+              Tahap {currentStep + 1} dari {steps.length}
             </div>
           </div>
 
           <div className="bg-white border border-slate-100 rounded-3xl p-5 shadow-sm">
             <div className="relative pt-2 pb-1 overflow-x-auto hide-scrollbar">
-              <div className="min-w-[340px]">
+              <div className="min-w-[340px] relative">
                 {/* Garis background horizontal */}
-                <div className="absolute top-[24px] left-[10%] right-[10%] h-0.5 bg-slate-200"></div>
-                
-                {/* Garis aktif biru */}
                 <div 
-                  className="absolute top-[24px] left-[10%] h-0.5 bg-blue-600 transition-all duration-500" 
-                  style={{ width: `${(currentStep / (STEPS.length - 1)) * 80}%` }}
-                ></div>
+                  className="absolute top-[24px] h-0.5 bg-slate-200"
+                  style={{ 
+                    left: `calc(50% / ${steps.length})`, 
+                    right: `calc(50% / ${steps.length})` 
+                  }}
+                >
+                  {/* Garis aktif biru */}
+                  <div 
+                    className="absolute top-0 left-0 h-full bg-blue-600 transition-all duration-500" 
+                    style={{ width: `${(currentStep / (steps.length - 1)) * 100}%` }}
+                  ></div>
+                </div>
 
                 <div className="flex justify-between relative">
-                  {STEPS.map((step, index) => {
+                  {steps.map((step, index) => {
                     const isCompleted = index < currentStep;
                     const isActive = index === currentStep;
                     const isFuture = index > currentStep;
@@ -168,7 +190,7 @@ export default async function TrackingPage({
                         </div>
 
                         <div className="text-center mt-3">
-                          <p className={`text-[10px] sm:text-[11px] font-extrabold mb-0.5 ${isCompleted || isActive ? 'text-blue-600' : 'text-slate-400'}`}>
+                          <p className={`text-[10px] sm:text-[11px] font-bold mb-0.5 ${isCompleted || isActive ? 'text-blue-600' : 'text-slate-400'}`}>
                             {step.title}
                           </p>
                           <p className="text-[8px] sm:text-[9px] font-medium text-slate-400 leading-tight px-1 hidden sm:block">
@@ -187,15 +209,15 @@ export default async function TrackingPage({
         {/* Rincian Tagihan */}
         <div>
           <p className="text-[11px] font-bold text-slate-400 tracking-widest uppercase mb-1">Ringkasan</p>
-          <h3 className="text-xl font-extrabold text-slate-900 mb-3">Rincian tagihan</h3>
+          <h3 className="text-lg font-bold text-slate-900 mb-3">Rincian tagihan</h3>
           
           <div className="bg-white border border-slate-100 rounded-3xl p-5 shadow-sm">
             <div className="flex justify-between items-start mb-5">
               <div>
-                <p className="font-extrabold text-slate-900 text-[15px] mb-1">{transaction.serviceType}</p>
+                <p className="font-semibold text-slate-900 text-[15px] mb-1">{transaction.serviceType}</p>
                 <p className="text-[11px] font-medium text-slate-400">Berat cucian {transaction.weight} Kg</p>
               </div>
-              <p className="font-extrabold text-slate-900 text-lg">{formattedPrice}</p>
+              <p className="font-bold text-slate-900 text-lg">{formattedPrice}</p>
             </div>
             
             <hr className="border-slate-100 border-dashed mb-4" />
@@ -217,7 +239,7 @@ export default async function TrackingPage({
 
         {/* Tombol Hubungi WhatsApp */}
         <a 
-          href="https://wa.me/6281234567890" 
+          href="https://wa.me/6285123456789" 
           target="_blank" 
           rel="noopener noreferrer"
           className="w-full bg-white border border-slate-200 text-blue-600 rounded-2xl py-4 px-5 flex items-center justify-between font-bold text-[13px] shadow-sm hover:bg-slate-50 transition-colors"
