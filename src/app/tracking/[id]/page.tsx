@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma';
 import { notFound } from 'next/navigation';
 import { LaundryStatus } from '@prisma/client';
 import HeaderBrand from '@/components/HeaderBrand';
+import FooterBrand from '@/components/FooterBrand';
 
 export const dynamic = 'force-dynamic';
 
@@ -250,10 +251,7 @@ export default async function TrackingPage({
         </a>
 
         {/* Footer Text */}
-        <p className="text-center text-[10px] font-medium text-slate-400">
-          Laundry jadi lebih mudah bersama Sayangan
-        </p>
-
+        <FooterBrand />
       </div>
       
       <style>{`

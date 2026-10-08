@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import HeaderBrand from '@/components/HeaderBrand';
+import FooterBrand from '@/components/FooterBrand';
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -94,14 +95,12 @@ export default function LoginPage() {
         </div>
 
         {/* Footer Text */}
-        <div className="mt-8 space-y-6 text-center">
+        <div className="mt-8 text-center flex flex-col items-center">
           <p className="text-[13px] text-slate-500 leading-relaxed">
             Akses terbatas khusus untuk kasir & pengelola<br />
             Sayangan Laundry. Tidak menerima registrasi publik.
           </p>
-          <p className="text-[13px] text-slate-400">
-            Sayangan Laundry — Bersih, Rapi & Wangi
-          </p>
+          <FooterBrand />
         </div>
 
       </div>

@@ -12,6 +12,7 @@ import {
   Droplets
 } from 'lucide-react';
 import HeaderBrand from '@/components/HeaderBrand';
+import FooterBrand from '@/components/FooterBrand';
 
 export default function ReportsPage() {
   return (
@@ -176,11 +177,7 @@ export default function ReportsPage() {
             Cetak Rekapan Bulanan
           </button>
           
-          <div className="text-center mt-6">
-            <span className="text-xs text-slate-400">
-              Laundry jadi lebih mudah bersama Sayangan
-            </span>
-          </div>
+          <FooterBrand />
         </div>
 
       </div>

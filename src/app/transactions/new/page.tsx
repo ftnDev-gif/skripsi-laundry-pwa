@@ -6,6 +6,7 @@ import { ArrowLeft, Droplets, QrCode, ChevronDown, Loader2, Pencil } from 'lucid
 import Link from 'next/link';
 import { createTransaction, getCustomers, updateCustomerPhone } from '@/actions/transaction';
 import HeaderBrand from '@/components/HeaderBrand';
+import FooterBrand from '@/components/FooterBrand';
 
 type Customer = {
   id: string;
@@ -432,11 +433,7 @@ export default function NewTransactionPage() {
         </div>
         
         {/* Footer Text */}
-        <div className="mt-6 text-center">
-          <p className="text-xs text-slate-400">
-            Pastikan data sudah benar sebelum disimpan.
-          </p>
-        </div>
+        <FooterBrand />
 
       </div>
     </div>

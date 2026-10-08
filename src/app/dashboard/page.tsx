@@ -1,4 +1,5 @@
 import HeaderBrand from '@/components/HeaderBrand';
+import FooterBrand from '@/components/FooterBrand';
 import { 
   Bell, 
   Droplets, 
@@ -273,11 +274,7 @@ export default async function DashboardPage() {
         </main>
         
         {/* Footer Text */}
-        <div className="mt-2 mb-2 text-center">
-          <p className="text-xs font-medium text-slate-400">
-            Laundry jadi lebih mudah bersama Sayangan
-          </p>
-        </div>
+        <FooterBrand />
       </div>
     </div>
   );
