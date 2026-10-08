@@ -9,7 +9,8 @@ import {
   FileText, 
   ChevronRight,
   Inbox,
-  PackageOpen
+  PackageOpen,
+  QrCode
 } from 'lucide-react';
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
@@ -131,9 +132,9 @@ export default async function DashboardPage() {
         {/* Header Area */}
         <header className="flex items-center justify-between">
           <HeaderBrand subtitle="KASIR" layout="row" />
-          <button className="flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-slate-500 shadow-sm">
-            <Bell className="h-5 w-5" />
-          </button>
+          <Link href="/scan" className="flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-slate-500 shadow-sm hover:bg-slate-100 transition-colors">
+            <QrCode className="h-5 w-5" />
+          </Link>
         </header>
 
         {/* Main Content */}
