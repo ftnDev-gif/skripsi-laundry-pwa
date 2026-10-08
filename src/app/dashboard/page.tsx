@@ -13,6 +13,7 @@ import {
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { LaundryStatus } from '@prisma/client';
+import UpdateStatusButton from '@/components/UpdateStatusButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -53,50 +54,66 @@ export default async function DashboardPage() {
   }).format(new Date());
 
   // Helper untuk tampilan status
-  const getStatusDisplay = (status: LaundryStatus) => {
+  const getStatusDisplay = (status: LaundryStatus, serviceType: string) => {
+    let result = {
+      icon: <FileText className="h-6 w-6 text-slate-500" />,
+      bgIcon: 'bg-slate-100',
+      badgeText: status as string,
+      badgeClass: 'bg-slate-100 text-slate-700',
+      actionText: 'Update'
+    };
+
     switch (status) {
       case 'SELESAI':
-        return {
+        result = {
           icon: <CheckCircle2 className="h-6 w-6 text-emerald-600" />,
           bgIcon: 'bg-emerald-50',
           badgeText: 'Selesai',
           badgeClass: 'bg-emerald-50 text-emerald-700',
           actionText: 'Ambil Cucian'
         };
+        break;
       case 'ANTREAN':
-        return {
+        result = {
           icon: <FileText className="h-6 w-6 text-slate-500" />,
           bgIcon: 'bg-slate-100',
           badgeText: 'Menunggu',
           badgeClass: 'bg-slate-100 text-slate-700',
           actionText: 'Mulai Cuci'
         };
+        // Trik Re-mapping untuk Setrika Saja
+        if (serviceType.includes('Setrika Saja')) {
+          result.actionText = 'Mulai Setrika';
+        }
+        break;
       case 'DICUCI':
       case 'DISETRIKA':
-        return {
+        result = {
           icon: <Clock className="h-6 w-6 text-amber-600" />,
           bgIcon: 'bg-amber-50',
           badgeText: status === 'DICUCI' ? 'Sedang Dicuci' : 'Sedang Disetrika',
           badgeClass: 'bg-amber-50 text-amber-700',
           actionText: 'Tandai Selesai'
         };
+        
+        // Trik Re-mapping untuk Cuci Lipat
+        if (status === 'DISETRIKA' && serviceType.includes('Lipat')) {
+          result.badgeText = 'Sedang Dilipat';
+          result.actionText = 'Selesai Dilipat';
+        }
+        break;
       case 'SIAP_DIAMBIL':
-        return {
+        result = {
           icon: <CheckCircle2 className="h-6 w-6 text-blue-600" />,
           bgIcon: 'bg-blue-50',
           badgeText: 'Siap Diambil',
           badgeClass: 'bg-blue-50 text-blue-700',
           actionText: 'Selesaikan'
         };
-      default:
-        return {
-          icon: <FileText className="h-6 w-6 text-slate-500" />,
-          bgIcon: 'bg-slate-100',
-          badgeText: status,
-          badgeClass: 'bg-slate-100 text-slate-700',
-          actionText: 'Update'
-        };
+        break;
     }
+    
+    return result;
   };
 
   const formatTime = (date: Date) => {
@@ -213,7 +230,7 @@ export default async function DashboardPage() {
             ) : (
               <div className="bg-slate-50 rounded-3xl p-5 border border-slate-100 shadow-sm space-y-6">
                 {transactions.map((tx, index) => {
-                  const display = getStatusDisplay(tx.status);
+                  const display = getStatusDisplay(tx.status, tx.serviceType);
                   return (
                     <div key={tx.id}>
                       <div className="flex gap-4">
@@ -234,9 +251,12 @@ export default async function DashboardPage() {
                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-medium ${display.badgeClass}`}>
                               {display.badgeText}
                             </span>
-                            <button className="text-[10px] font-medium text-blue-600 bg-blue-50 px-3 py-1 rounded-full">
-                              {display.actionText}
-                            </button>
+                            <UpdateStatusButton 
+                              transactionId={tx.id} 
+                              currentStatus={tx.status} 
+                              serviceType={tx.serviceType}
+                              actionText={display.actionText} 
+                            />
                           </div>
                         </div>
                       </div>

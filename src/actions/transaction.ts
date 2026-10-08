@@ -31,7 +31,7 @@ export async function createTransaction(formData: FormData) {
     }
     
     // Check if phone already exists just in case
-    let existingCustomer = await prisma.customer.findUnique({
+    const existingCustomer = await prisma.customer.findUnique({
       where: { phone: customerPhone }
     });
 
@@ -132,4 +132,24 @@ export async function updateCustomerPhone(customerId: string, newPhone: string) 
   });
 
   return updatedCustomer;
+}
+
+import { LaundryStatus } from '@prisma/client';
+import { revalidatePath } from 'next/cache';
+
+export async function updateTransactionStatus(transactionId: string, newStatus: LaundryStatus) {
+  if (!transactionId || !newStatus) {
+    throw new Error('Transaction ID dan Status baru wajib diisi');
+  }
+
+  const transaction = await prisma.transaction.update({
+    where: { id: transactionId },
+    data: { status: newStatus },
+  });
+
+  // Revalidasi halaman dashboard dan tracking agar UI terbarui
+  revalidatePath('/dashboard');
+  revalidatePath('/tracking/[id]', 'page');
+
+  return transaction;
 }
