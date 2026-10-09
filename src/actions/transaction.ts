@@ -2,6 +2,7 @@
 
 import { prisma } from '@/lib/prisma';
 import { redirect } from 'next/navigation';
+import { sendWhatsAppMessage } from '@/lib/fonnte';
 
 export async function createTransaction(formData: FormData) {
   const customerId = formData.get('customerId') as string;
@@ -92,8 +93,29 @@ export async function createTransaction(formData: FormData) {
       totalPrice,
       status: 'ANTREAN',
       paymentStatus: paymentStatus,
+    },
+    include: {
+      customer: true
     }
   });
+
+  try {
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const waMessage = `Halo *${transaction.customer.name}*, terima kasih telah mencuci di *Sayangan Laundry*!
+
+*Nomor Resi:* ${transaction.invoiceNumber}
+*Layanan:* ${transaction.serviceType} (${transaction.weight} Kg)
+*Total Tagihan:* Rp ${transaction.totalPrice} (${transaction.paymentStatus})
+
+Lacak status cucian Anda secara berkala melalui tautan berikut:
+${appUrl}/tracking/${transaction.invoiceNumber}
+
+Sayangan Laundry — Bersih, Rapi & Wangi.`;
+
+    await sendWhatsAppMessage(transaction.customer.phone, waMessage);
+  } catch (error) {
+    console.error('Terjadi kesalahan saat memproses notifikasi WhatsApp:', error);
+  }
 
   redirect(`/transactions/receipt?invoice=${transaction.invoiceNumber}`);
 }

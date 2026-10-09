@@ -11,7 +11,8 @@ import {
   Check, 
   Receipt, 
   Printer,
-  HandCoins
+  HandCoins,
+  MessageCircle
 } from 'lucide-react';
 import HeaderBrand from '@/components/HeaderBrand';
 import FooterBrand from '@/components/FooterBrand';
@@ -228,18 +229,31 @@ export default function ReportClient({ transactions }: { transactions: any[] }) 
                   year: 'numeric'
                 });
 
+                // Helper WA Link
+                let waHref = '#';
+                if (!isLunas && t.customer?.phone) {
+                  let cleaned = t.customer.phone.replace(/\D/g, '');
+                  if (cleaned.startsWith('08')) {
+                    cleaned = '628' + cleaned.slice(2);
+                  }
+                  const totalFormatted = new Intl.NumberFormat('id-ID').format(t.totalPrice);
+                  const msg = `Halo Kak ${t.customer.name}, kami dari Sayangan Laundry ingin menginfokan bahwa pesanan dengan nota ${t.invoiceNumber} (${t.weight} Kg ${t.serviceType}) memiliki tagihan kasbon sebesar Rp ${totalFormatted}. Pembayaran dapat dilakukan saat pengambilan pakaian atau via transfer. Terima kasih!`;
+                  waHref = `https://wa.me/${cleaned}?text=${encodeURIComponent(msg)}`;
+                }
+
                 return (
                   <div key={t.id} className="p-4 bg-white border border-slate-100 rounded-2xl shadow-sm flex items-start gap-3 print:shadow-none print:border-b print:border-slate-200 print:rounded-none print:p-2">
                     <div className={`h-10 w-10 rounded-full flex items-center justify-center shrink-0 mt-0.5 print:hidden ${isLunas ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
                       {isLunas ? <Check className="h-5 w-5" /> : <Receipt className="h-5 w-5" />}
                     </div>
-                    <div className="flex-1">
+                    <div className="flex-1 flex flex-col">
                       <div className="flex justify-between items-start mb-0.5">
                         <h4 className="font-bold text-slate-900 text-sm">{t.customer?.name || 'Pelanggan'}</h4>
                         <span className="text-[10px] text-slate-400 font-medium">{dateStr}</span>
                       </div>
                       <p className="text-xs text-slate-500 mb-2">{t.invoiceNumber} · {t.weight} Kg {t.serviceType}</p>
-                      <div className="flex justify-between items-center">
+                      
+                      <div className="flex justify-between items-center mb-2">
                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md print:bg-transparent print:border print:px-1 ${isLunas ? 'bg-emerald-50 text-emerald-700 print:text-emerald-700 print:border-emerald-200' : 'bg-amber-50 text-amber-700 print:text-amber-700 print:border-amber-200'}`}>
                           {isLunas ? 'Lunas' : 'Kasbon (Belum Lunas)'}
                         </span>
@@ -247,6 +261,20 @@ export default function ReportClient({ transactions }: { transactions: any[] }) 
                           Rp {new Intl.NumberFormat('id-ID').format(t.totalPrice)}
                         </span>
                       </div>
+
+                      {!isLunas && t.customer?.phone && (
+                        <div className="flex justify-start print:hidden">
+                          <a 
+                            href={waHref}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors"
+                          >
+                            <MessageCircle className="h-3.5 w-3.5" />
+                            Ingatkan via WA
+                          </a>
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
@@ -262,7 +290,7 @@ export default function ReportClient({ transactions }: { transactions: any[] }) 
             className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white font-semibold py-3.5 rounded-2xl hover:bg-blue-700 transition-colors shadow-sm shadow-blue-600/20 mb-6"
           >
             <Printer className="h-5 w-5" />
-            Cetak Rekapan Bulanan
+            Cetak Rekapan {timeFilter === 'Hari Ini' ? 'Harian' : timeFilter === 'Minggu Ini' ? 'Mingguan' : 'Bulanan'}
           </button>
           
           <FooterBrand />

@@ -94,6 +94,12 @@ export default async function TrackingPage({
     minimumFractionDigits: 0,
   }).format(transaction.totalPrice);
 
+  // Ambil nomor dari .env, atau gunakan nomor default jika kosong
+  const adminPhone = process.env.NEXT_PUBLIC_ADMIN_WHATSAPP || '6281234567890';
+  // Buat pesan otomatis yang menyertakan nomor resi
+  const waMessage = encodeURIComponent(`Halo Sayangan Laundry, saya ingin menanyakan pesanan dengan nomor resi ${transaction.invoiceNumber}`);
+  const waUrl = `https://wa.me/${adminPhone}?text=${waMessage}`;
+
   return (
     <div className="min-h-screen w-full bg-slate-50 flex justify-center py-6 px-4">
       <div className="w-full max-w-md bg-white rounded-[2rem] p-6 shadow-sm border border-slate-100 flex flex-col gap-6">
@@ -240,7 +246,7 @@ export default async function TrackingPage({
 
         {/* Tombol Hubungi WhatsApp */}
         <a 
-          href="https://wa.me/6285123456789" 
+          href={waUrl} 
           target="_blank" 
           rel="noopener noreferrer"
           className="w-full bg-white border border-slate-200 text-blue-600 rounded-2xl py-4 px-5 flex items-center justify-between font-bold text-[13px] shadow-sm hover:bg-slate-50 transition-colors"
