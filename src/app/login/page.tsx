@@ -2,13 +2,33 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react';
 import HeaderBrand from '@/components/HeaderBrand';
 import FooterBrand from '@/components/FooterBrand';
+import { loginKasir } from '@/actions/auth';
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+
+  async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError('');
+    setIsLoading(true);
+
+    const formData = new FormData(e.currentTarget);
+    const result = await loginKasir(formData);
+
+    if (result?.success) {
+      router.push('/dashboard');
+      router.refresh(); // Refresh route to apply new layout logic if needed
+    } else {
+      setError(result?.message || 'Terjadi kesalahan saat login.');
+      setIsLoading(false);
+    }
+  }
 
   return (
     <div className="min-h-screen w-full bg-slate-50 flex justify-center py-6 px-4">
@@ -18,17 +38,26 @@ export default function LoginPage() {
 
         {/* Main Form */}
         <div className="mt-8">
-          <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
+          <form className="space-y-5" onSubmit={handleLogin}>
             
+            {error && (
+              <div className="flex items-center space-x-2 rounded-xl bg-red-50 p-3 text-sm text-red-600 border border-red-100">
+                <AlertCircle className="h-5 w-5 flex-shrink-0" />
+                <p>{error}</p>
+              </div>
+            )}
+
             {/* Email / Username Field */}
             <div className="flex flex-col space-y-2">
-              <label className="text-sm font-semibold text-slate-700">Email / Username</label>
+              <label className="text-sm font-semibold text-slate-700">Username / Email</label>
               <div className="relative">
                 <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
                   <Mail className="h-5 w-5 text-slate-400" />
                 </div>
                 <input 
                   type="text" 
+                  name="username"
+                  required
                   placeholder="kasir@sayangan.com" 
                   className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-11 pr-4 text-sm text-slate-900 placeholder-slate-400 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 transition-colors"
                 />
@@ -44,6 +73,8 @@ export default function LoginPage() {
                 </div>
                 <input 
                   type={showPassword ? 'text' : 'password'} 
+                  name="password"
+                  required
                   placeholder="••••••••" 
                   className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-11 pr-11 text-sm text-slate-900 placeholder-slate-400 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 transition-colors"
                 />
@@ -65,8 +96,8 @@ export default function LoginPage() {
               <div className="relative flex items-center">
                 <input 
                   type="checkbox" 
+                  name="rememberMe"
                   id="remember" 
-                  defaultChecked
                   className="peer h-5 w-5 cursor-pointer appearance-none rounded border border-slate-300 bg-white checked:border-blue-600 checked:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-1 transition-all" 
                 />
                 <span className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 peer-checked:opacity-100">
@@ -83,11 +114,18 @@ export default function LoginPage() {
             {/* Submit Button */}
             <div className="pt-2">
               <button 
-                type="button" 
-                onClick={() => router.push('/dashboard')}
-                className="w-full rounded-2xl bg-blue-600 py-3.5 text-center text-sm font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 transition-all active:scale-[0.98]"
+                type="submit" 
+                disabled={isLoading}
+                className="flex w-full justify-center items-center rounded-2xl bg-blue-600 py-3.5 text-center text-sm font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
               >
-                Masuk ke Dashboard
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    Memproses...
+                  </>
+                ) : (
+                  'Masuk ke Dashboard'
+                )}
               </button>
             </div>
 

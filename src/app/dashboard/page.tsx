@@ -1,7 +1,6 @@
 import HeaderBrand from '@/components/HeaderBrand';
 import FooterBrand from '@/components/FooterBrand';
 import { 
-  Bell, 
   Droplets, 
   Plus, 
   CheckCircle2, 
@@ -10,12 +9,14 @@ import {
   ChevronRight,
   Inbox,
   PackageOpen,
-  QrCode
+  QrCode,
+  LogOut
 } from 'lucide-react';
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { LaundryStatus } from '@prisma/client';
 import UpdateStatusButton from '@/components/UpdateStatusButton';
+import { logoutKasir } from '@/actions/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -132,9 +133,12 @@ export default async function DashboardPage() {
         {/* Header Area */}
         <header className="flex items-center justify-between">
           <HeaderBrand subtitle="KASIR" layout="row" />
-          <Link href="/scan" className="flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-slate-500 shadow-sm hover:bg-slate-100 transition-colors">
-            <QrCode className="h-5 w-5" />
-          </Link>
+          <form action={logoutKasir}>
+            <button type="submit" className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 bg-white text-red-500 shadow-sm hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-colors" title="Keluar">
+              <LogOut className="h-4 w-4" />
+              <span className="text-xs font-semibold">Keluar</span>
+            </button>
+          </form>
         </header>
 
         {/* Main Content */}
@@ -145,7 +149,7 @@ export default async function DashboardPage() {
             <p className="text-sm text-slate-500 mb-1">Selamat pagi, Kasir!</p>
             <div className="flex items-end justify-between">
               <h2 className="text-2xl font-bold text-slate-900">
-                Ringkasan hari ini
+                Ringkasan Hari Ini
               </h2>
               <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2.5 py-1 rounded-lg">
                 {today}
@@ -170,7 +174,7 @@ export default async function DashboardPage() {
             </div>
 
             {/* Card 2: Pendapatan Aktif */}
-            <Link href="/reports" className="bg-slate-50 rounded-3xl p-5 border border-slate-100 shadow-sm block hover:bg-slate-100 transition-colors">
+            <div className="bg-slate-50 rounded-3xl p-5 border border-slate-100 shadow-sm">
               <div className="flex justify-between items-start mb-4">
                 <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-100/50">
                   <Inbox className="h-5 w-5 text-emerald-600" />
@@ -181,17 +185,43 @@ export default async function DashboardPage() {
                 <h3 className="text-lg font-bold text-slate-900 mb-0.5">{formatCurrency(totalActiveIncome)}</h3>
                 <p className="text-sm text-slate-500">Estimasi Tagihan</p>
               </div>
-            </Link>
+            </div>
           </div>
 
-          {/* CTA Button */}
-          <Link 
-            href="/transactions/new"
-            className="w-full flex items-center justify-center py-4 bg-blue-600 text-white rounded-2xl font-medium shadow-lg shadow-blue-600/20 active:scale-[0.98] transition-transform"
-          >
-            <Plus className="h-5 w-5 mr-2" />
-            Tambah Transaksi Baru
-          </Link>
+          {/* Action Buttons Area */}
+          <div className="space-y-3">
+            {/* Main Action */}
+            <Link 
+              href="/transactions/new"
+              className="w-full flex items-center justify-center py-4 bg-blue-600 text-white rounded-2xl font-semibold shadow-lg shadow-blue-600/20 active:scale-[0.98] transition-transform"
+            >
+              <Plus className="h-5 w-5 mr-2" />
+              Tambah Transaksi Baru
+            </Link>
+
+            {/* Secondary Actions */}
+            <div className="grid grid-cols-2 gap-3">
+              <Link 
+                href="/scan"
+                className="flex flex-col items-center justify-center p-4 bg-slate-50 rounded-2xl border border-slate-200 text-slate-700 shadow-sm active:scale-[0.98] transition-all hover:bg-slate-100"
+              >
+                <div className="h-10 w-10 bg-white rounded-full flex items-center justify-center mb-2 shadow-sm border border-slate-100">
+                  <QrCode className="h-5 w-5 text-slate-600" />
+                </div>
+                <span className="text-[11px] font-semibold text-center">Scan QR<br/>Keranjang</span>
+              </Link>
+              
+              <Link 
+                href="/reports"
+                className="flex flex-col items-center justify-center p-4 bg-slate-50 rounded-2xl border border-slate-200 text-slate-700 shadow-sm active:scale-[0.98] transition-all hover:bg-slate-100"
+              >
+                <div className="h-10 w-10 bg-white rounded-full flex items-center justify-center mb-2 shadow-sm border border-slate-100">
+                  <FileText className="h-5 w-5 text-slate-600" />
+                </div>
+                <span className="text-[11px] font-semibold text-center">Laporan &<br/>Kasbon</span>
+              </Link>
+            </div>
+          </div>
 
           {/* Activity Section */}
           <section className="pt-2">
@@ -201,12 +231,12 @@ export default async function DashboardPage() {
                   Aktivitas
                 </p>
                 <h3 className="text-lg font-bold text-slate-900">
-                  Transaksi terakhir
+                  Transaksi Terakhir
                 </h3>
               </div>
               {transactions.length > 0 && (
                 <Link href="/transactions" className="flex items-center text-sm font-medium text-blue-600">
-                  Lihat semua <ChevronRight className="h-4 w-4 ml-0.5" />
+                  Lihat Semua <ChevronRight className="h-4 w-4 ml-0.5" />
                 </Link>
               )}
             </div>

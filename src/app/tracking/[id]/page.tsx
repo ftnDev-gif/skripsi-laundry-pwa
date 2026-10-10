@@ -115,7 +115,7 @@ export default async function TrackingPage({
         {/* Title Section */}
         <div>
           <p className="text-xs font-bold text-slate-400 tracking-widest uppercase mb-0.5">Pelacakan pesanan</p>
-          <h2 className="text-2xl font-bold text-slate-900">Status cucian kamu</h2>
+          <h2 className="text-2xl font-bold text-slate-900">Status Cucian Kamu</h2>
         </div>
 
         {/* Kartu Informasi Resi Biru */}
@@ -143,7 +143,7 @@ export default async function TrackingPage({
         <div>
           <p className="text-[11px] font-bold text-slate-400 tracking-widest uppercase mb-1">Progress</p>
           <div className="flex justify-between items-center mb-3">
-            <h3 className="text-lg font-bold text-slate-900">Tahapan cucian</h3>
+            <h3 className="text-lg font-bold text-slate-900">Tahapan Cucian</h3>
             <div className="bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-xs font-bold">
               Tahap {currentStep + 1} dari {steps.length}
             </div>
@@ -216,7 +216,7 @@ export default async function TrackingPage({
         {/* Rincian Tagihan */}
         <div>
           <p className="text-[11px] font-bold text-slate-400 tracking-widest uppercase mb-1">Ringkasan</p>
-          <h3 className="text-lg font-bold text-slate-900 mb-3">Rincian tagihan</h3>
+          <h3 className="text-lg font-bold text-slate-900 mb-3">Rincian Tagihan</h3>
           
           <div className="bg-white border border-slate-100 rounded-3xl p-5 shadow-sm">
             <div className="flex justify-between items-start mb-5">
