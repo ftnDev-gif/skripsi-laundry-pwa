@@ -2,7 +2,7 @@
 
 import { prisma } from '@/lib/prisma';
 import { redirect } from 'next/navigation';
-import { sendWhatsAppMessage } from '@/lib/fonnte';
+import { sendWhatsAppMessage, generateReceiptMessage, generatePickupMessage } from '@/lib/fonnte';
 
 export async function createTransaction(formData: FormData) {
   const customerId = formData.get('customerId') as string;
@@ -101,16 +101,16 @@ export async function createTransaction(formData: FormData) {
 
   try {
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-    const waMessage = `Halo *${transaction.customer.name}*, terima kasih telah mencuci di *Sayangan Laundry*!
-
-*Nomor Resi:* ${transaction.invoiceNumber}
-*Layanan:* ${transaction.serviceType} (${transaction.weight} Kg)
-*Total Tagihan:* Rp ${transaction.totalPrice} (${transaction.paymentStatus})
-
-Lacak status cucian Anda secara berkala melalui tautan berikut:
-${appUrl}/tracking/${transaction.invoiceNumber}
-
-Sayangan Laundry — Bersih, Rapi & Wangi.`;
+    const trackingUrl = `${appUrl}/tracking/${transaction.invoiceNumber}`;
+    const waMessage = generateReceiptMessage({
+      customerName: transaction.customer.name,
+      invoiceNumber: transaction.invoiceNumber,
+      serviceType: transaction.serviceType,
+      weight: transaction.weight,
+      totalPrice: transaction.totalPrice,
+      trackingUrl,
+      paymentStatus: transaction.paymentStatus,
+    });
 
     await sendWhatsAppMessage(transaction.customer.phone, waMessage);
   } catch (error) {
@@ -159,18 +159,33 @@ export async function updateCustomerPhone(customerId: string, newPhone: string) 
 import { LaundryStatus } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
 
-export async function updateTransactionStatus(transactionId: string, newStatus: LaundryStatus) {
-  if (!transactionId || !newStatus) {
+export async function updateTransactionStatus(transactionId: string, nextStatus: LaundryStatus) {
+  if (!transactionId || !nextStatus) {
     throw new Error('Transaction ID dan Status baru wajib diisi');
   }
 
   const transaction = await prisma.transaction.update({
     where: { id: transactionId },
-    data: { status: newStatus },
+    data: { status: nextStatus },
+    include: {
+      customer: true,
+    },
   });
 
-  // Revalidasi halaman dashboard dan tracking agar UI terbarui
+  // Kirim WhatsApp otomatis hanya jika status berubah ke SIAP_DIAMBIL dan notifikasi diaktifkan
+  if (nextStatus === 'SIAP_DIAMBIL' && process.env.ENABLE_WHATSAPP_NOTIFICATION === 'true') {
+    try {
+      const message = generatePickupMessage(transaction.customer.name, transaction.invoiceNumber);
+      await sendWhatsAppMessage(transaction.customer.phone, message);
+    } catch (error) {
+      console.error('Gagal mengirim pesan WhatsApp otomatis via Fonnte:', error);
+    }
+  }
+
+  // Revalidasi halaman dashboard, daftar transaksi, dan tracking agar UI terbarui
   revalidatePath('/dashboard');
+  revalidatePath('/transactions');
+  revalidatePath('/scan/[id]', 'page');
   revalidatePath('/tracking/[id]', 'page');
 
   return transaction;

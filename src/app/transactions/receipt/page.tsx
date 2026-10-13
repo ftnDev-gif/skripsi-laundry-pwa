@@ -10,16 +10,21 @@ export const dynamic = 'force-dynamic';
 export default async function ReceiptPage({
   searchParams,
 }: {
-  searchParams: Promise<{ invoice?: string }>;
+  searchParams: Promise<{ invoice?: string; id?: string }>;
 }) {
-  const { invoice } = await searchParams;
+  const { invoice, id } = await searchParams;
 
-  if (!invoice) {
+  if (!invoice && !id) {
     notFound();
   }
 
-  const transaction = await prisma.transaction.findUnique({
-    where: { invoiceNumber: invoice },
+  const transaction = await prisma.transaction.findFirst({
+    where: {
+      OR: [
+        ...(invoice ? [{ invoiceNumber: invoice }] : []),
+        ...(id ? [{ id: id }] : []),
+      ],
+    },
     include: { customer: true },
   });
 
@@ -43,7 +48,7 @@ export default async function ReceiptPage({
             </div>
             <h1 className="text-xl font-bold text-slate-900 tracking-tight">Sayangan Laundry</h1>
             <p className="text-sm text-slate-500 mt-1">Bersih, Rapi & Wangi</p>
-            <p className="text-xs text-slate-400 mt-1">Jl. Pendidikan No. 1, Yogyakarta</p>
+            <p className="text-xs text-slate-400 mt-1">(Kampung Volley) Sayangan RT. 01 RW. 03 Bentakan, Baki, Sukoharjo</p>
             <p className="text-xs text-slate-400 mt-1">
               {new Intl.DateTimeFormat('id-ID', {
                 dateStyle: 'long',
@@ -127,6 +132,9 @@ export default async function ReceiptPage({
           totalPrice={transaction.totalPrice}
           trackingUrl={trackingUrl}
           customerPhone={transaction.customer.phone}
+          serviceType={transaction.serviceType}
+          weight={transaction.weight}
+          paymentStatus={transaction.paymentStatus}
         />
       </div>
 

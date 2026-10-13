@@ -10,13 +10,16 @@ import {
   Inbox,
   PackageOpen,
   QrCode,
-  LogOut
+  LogOut,
+  Receipt,
+  MessageCircle
 } from 'lucide-react';
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { LaundryStatus } from '@prisma/client';
 import UpdateStatusButton from '@/components/UpdateStatusButton';
 import { logoutKasir } from '@/actions/auth';
+import { generatePickupMessage, createWhatsAppUrl } from '@/lib/whatsappTemplate';
 
 export const dynamic = 'force-dynamic';
 
@@ -193,7 +196,7 @@ export default async function DashboardPage() {
             {/* Main Action */}
             <Link 
               href="/transactions/new"
-              className="w-full flex items-center justify-center py-4 bg-blue-600 text-white rounded-2xl font-semibold shadow-lg shadow-blue-600/20 active:scale-[0.98] transition-transform"
+              className="w-full flex items-center justify-center py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-semibold shadow-lg shadow-blue-600/20 active:scale-[0.98] transition-all focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 disabled:opacity-70 disabled:cursor-not-allowed"
             >
               <Plus className="h-5 w-5 mr-2" />
               Tambah Transaksi Baru
@@ -283,12 +286,37 @@ export default async function DashboardPage() {
                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-medium ${display.badgeClass}`}>
                               {display.badgeText}
                             </span>
-                            <UpdateStatusButton 
-                              transactionId={tx.id} 
-                              currentStatus={tx.status} 
-                              serviceType={tx.serviceType}
-                              actionText={display.actionText} 
-                            />
+                            <div className="flex items-center">
+                              <UpdateStatusButton 
+                                transactionId={tx.id} 
+                                currentStatus={tx.status} 
+                                serviceType={tx.serviceType}
+                                actionText={display.actionText} 
+                              />
+                              {/* Ikon WhatsApp Manual di samping Nota - HANYA jika status SIAP_DIAMBIL */}
+                              {tx.status === 'SIAP_DIAMBIL' && tx.customer.phone && (
+                                <a
+                                  href={createWhatsAppUrl(
+                                    tx.customer.phone,
+                                    generatePickupMessage(tx.customer.name, tx.invoiceNumber)
+                                  )}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-emerald-600 hover:text-emerald-700 p-1 rounded-lg hover:bg-emerald-50 transition-colors ml-3 flex items-center justify-center"
+                                  title="Kirim WhatsApp Pengambilan (Siap Diambil)"
+                                >
+                                  <MessageCircle className="h-4 w-4" />
+                                </a>
+                              )}
+                              <Link 
+                                href={`/transactions/receipt?id=${tx.id}`} 
+                                target="_blank"
+                                className="text-slate-400 hover:text-blue-600 transition-colors ml-3"
+                                title="Lihat Nota Digital"
+                              >
+                                <Receipt className="h-4 w-4" />
+                              </Link>
+                            </div>
                           </div>
                         </div>
                       </div>

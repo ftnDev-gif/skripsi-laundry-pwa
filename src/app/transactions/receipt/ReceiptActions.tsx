@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { Printer, MessageCircle, ArrowLeft } from 'lucide-react';
+import { generateReceiptMessage, createWhatsAppUrl } from '@/lib/whatsappTemplate';
 
 type Props = {
   invoiceNumber: string;
@@ -10,16 +11,35 @@ type Props = {
   totalPrice: number;
   trackingUrl: string;
   customerPhone: string;
+  serviceType?: string;
+  weight?: number;
+  paymentStatus?: string;
 };
 
-export default function ReceiptActions({ invoiceNumber, customerName, totalPrice, trackingUrl, customerPhone }: Props) {
+export default function ReceiptActions({ 
+  invoiceNumber, 
+  customerName, 
+  totalPrice, 
+  trackingUrl, 
+  customerPhone,
+  serviceType = 'Cuci & Setrika',
+  weight = 0,
+  paymentStatus,
+}: Props) {
   const handlePrint = () => {
     window.print();
   };
 
-  const formattedTotal = new Intl.NumberFormat('id-ID').format(totalPrice);
-  const waMessage = `Halo ${customerName}, pesanan laundry Anda dengan nomor ${invoiceNumber} telah kami terima. Total tagihan: Rp ${formattedTotal}. Anda dapat melacak status cucian melalui link berikut: ${trackingUrl}`;
-  const waLink = `https://wa.me/${customerPhone}?text=${encodeURIComponent(waMessage)}`;
+  const waMessage = generateReceiptMessage({
+    customerName,
+    invoiceNumber,
+    serviceType,
+    weight,
+    totalPrice,
+    trackingUrl,
+    paymentStatus,
+  });
+  const waLink = createWhatsAppUrl(customerPhone, waMessage);
 
   return (
     <div className="space-y-3 print:hidden">

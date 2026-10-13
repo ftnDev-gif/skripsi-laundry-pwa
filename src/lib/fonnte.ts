@@ -37,3 +37,6 @@ export async function sendWhatsAppMessage(target: string, message: string) {
     return { success: false, error: error.message };
   }
 }
+
+export * from './whatsappTemplate';
+

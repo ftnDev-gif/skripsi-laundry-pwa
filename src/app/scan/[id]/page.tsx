@@ -3,7 +3,8 @@ import FooterBrand from '@/components/FooterBrand';
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
 import { ArrowLeft, ScanLine, Receipt, FileText } from 'lucide-react';
-import StatusControl from './StatusControl';
+import ScanClient from './ScanClient';
+import TrackingStepper from '@/components/TrackingStepper';
 
 export const dynamic = 'force-dynamic';
 
@@ -85,7 +86,7 @@ export default async function ScanManagePage({ params }: PageProps) {
               KONTROL STATUS
             </p>
             <h1 className="text-2xl font-bold text-slate-900">
-              Kelola pesanan
+              Kelola Pesanan
             </h1>
           </div>
         </div>
@@ -106,10 +107,14 @@ export default async function ScanManagePage({ params }: PageProps) {
             </span>
           </div>
 
-          <div className="space-y-1.5 border-t border-blue-500/40 pt-3 text-sm">
+          <div className="space-y-2 border-t border-blue-500/40 pt-3 text-sm">
             <div className="flex justify-between text-blue-100">
               <span>Pelanggan</span>
               <span className="font-semibold text-white">{transaction.customer.name}</span>
+            </div>
+            <div className="flex justify-between text-blue-100">
+              <span>No. HP / WhatsApp</span>
+              <span className="font-semibold text-white">{transaction.customer.phone}</span>
             </div>
             <div className="flex justify-between text-blue-100">
               <span>Layanan</span>
@@ -124,21 +129,38 @@ export default async function ScanManagePage({ params }: PageProps) {
           </div>
         </div>
 
-        {/* Kontrol Aksi Update Status */}
-        <StatusControl
+        {/* Garis Tracking Stepper Tahapan Cucian */}
+        <TrackingStepper
+          serviceType={transaction.serviceType}
+          status={transaction.status}
+        />
+
+        {/* Kontrol Aksi Update Status & WhatsApp */}
+        <ScanClient
           transactionId={transaction.id}
           currentStatus={transaction.status}
           serviceType={transaction.serviceType}
+          customerName={transaction.customer.name}
+          customerPhone={transaction.customer.phone}
+          invoiceNumber={transaction.invoiceNumber}
+          transaction={transaction}
         />
 
         {/* Aksi Tambahan */}
-        <div className="flex flex-col gap-2 pt-2">
-          <Link className="w-full flex items-center justify-center gap-2 py-3 bg-slate-100 text-slate-700 rounded-xl text-sm font-medium hover:bg-slate-200 transition-colors" href="/scan">
+        <div className="flex flex-col items-center gap-3 pt-1">
+          <Link 
+            className="w-full flex items-center justify-center gap-2 py-3.5 bg-slate-100 text-slate-700 rounded-2xl text-sm font-semibold hover:bg-slate-200 transition-colors" 
+            href="/scan"
+          >
             <ScanLine className="w-4 h-4"/>
             Pindai Keranjang Lain
           </Link>
 
-          <Link className="w-full flex items-center justify-center gap-2 py-3 text-blue-600 rounded-xl text-sm font-medium hover:bg-blue-50 transition-colors" href={`/transactions/receipt?invoice=${transaction.invoiceNumber}`}>
+          <Link 
+            className="inline-flex items-center gap-1.5 text-sm text-blue-600 hover:underline font-medium py-1 transition-colors" 
+            href={`/transactions/receipt?invoice=${transaction.invoiceNumber}`}
+            target="_blank"
+          >
             <Receipt className="w-4 h-4"/>
             Lihat Nota Digital
           </Link>
