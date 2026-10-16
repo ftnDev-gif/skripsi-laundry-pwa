@@ -282,11 +282,11 @@ export default async function DashboardPage() {
                           <p className="text-xs text-slate-500 mb-2 truncate">
                             {tx.invoiceNumber} &middot; {tx.weight} Kg &middot; {tx.serviceType}
                           </p>
-                          <div className="flex items-center justify-between">
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-medium ${display.badgeClass}`}>
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-medium shrink-0 ${display.badgeClass}`}>
                               {display.badgeText}
                             </span>
-                            <div className="flex items-center">
+                            <div className="flex flex-wrap items-center gap-2">
                               <UpdateStatusButton 
                                 transactionId={tx.id} 
                                 currentStatus={tx.status} 
@@ -302,7 +302,7 @@ export default async function DashboardPage() {
                                   )}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="text-emerald-600 hover:text-emerald-700 p-1 rounded-lg hover:bg-emerald-50 transition-colors ml-3 flex items-center justify-center"
+                                  className="text-emerald-600 hover:text-emerald-700 p-1 rounded-lg hover:bg-emerald-50 transition-colors flex items-center justify-center"
                                   title="Kirim WhatsApp Pengambilan (Siap Diambil)"
                                 >
                                   <MessageCircle className="h-4 w-4" />
@@ -311,7 +311,7 @@ export default async function DashboardPage() {
                               <Link 
                                 href={`/transactions/receipt?id=${tx.id}`} 
                                 target="_blank"
-                                className="text-slate-400 hover:text-blue-600 transition-colors ml-3"
+                                className="text-slate-400 hover:text-blue-600 p-1 rounded-lg hover:bg-slate-100 transition-colors flex items-center justify-center"
                                 title="Lihat Nota Digital"
                               >
                                 <Receipt className="h-4 w-4" />
