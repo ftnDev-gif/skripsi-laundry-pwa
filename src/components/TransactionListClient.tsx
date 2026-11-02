@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Search, PackageOpen, FileText, Plus, Receipt, MessageCircle } from 'lucide-react';
+import { Search, PackageOpen, FileText, Plus, Receipt, MessageCircle, CheckCircle2, Clock } from 'lucide-react';
 import { LaundryStatus } from '@prisma/client';
 import UpdateStatusButton from '@/components/UpdateStatusButton';
 import { generatePickupMessage, createWhatsAppUrl } from '@/lib/whatsappTemplate';
@@ -53,26 +53,26 @@ export default function TransactionListClient({ transactions }: Props) {
       icon: <FileText className="h-6 w-6 text-slate-500" />,
       bgIcon: 'bg-slate-100',
       badgeText: status as string,
-      badgeClass: 'bg-slate-100 text-slate-700',
+      badgeClass: 'bg-slate-100 text-slate-700 border border-slate-200',
       actionText: 'Update'
     };
 
     switch (status) {
       case 'SELESAI':
         result = {
-          icon: <FileText className="h-6 w-6 text-emerald-600" />,
+          icon: <CheckCircle2 className="h-6 w-6 text-emerald-600" />,
           bgIcon: 'bg-emerald-50',
           badgeText: 'Selesai',
-          badgeClass: 'bg-emerald-50 text-emerald-700',
+          badgeClass: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
           actionText: 'Ambil Cucian'
         };
         break;
       case 'ANTREAN':
         result = {
-          icon: <FileText className="h-6 w-6 text-slate-500" />,
-          bgIcon: 'bg-slate-100',
+          icon: <FileText className="h-6 w-6 text-amber-600" />,
+          bgIcon: 'bg-amber-50',
           badgeText: 'Menunggu',
-          badgeClass: 'bg-slate-100 text-slate-700',
+          badgeClass: 'bg-amber-50 text-amber-700 border border-amber-200',
           actionText: 'Mulai Cuci'
         };
         if (serviceType.includes('Setrika Saja')) {
@@ -82,10 +82,10 @@ export default function TransactionListClient({ transactions }: Props) {
       case 'DICUCI':
       case 'DISETRIKA':
         result = {
-          icon: <FileText className="h-6 w-6 text-amber-600" />,
-          bgIcon: 'bg-amber-50',
+          icon: <Clock className="h-6 w-6 text-indigo-600" />,
+          bgIcon: 'bg-indigo-50',
           badgeText: status === 'DICUCI' ? 'Sedang Dicuci' : 'Sedang Disetrika',
-          badgeClass: 'bg-amber-50 text-amber-700',
+          badgeClass: 'bg-indigo-50 text-indigo-700 border border-indigo-200',
           actionText: 'Tandai Selesai'
         };
         if (status === 'DISETRIKA' && serviceType.includes('Lipat')) {
@@ -95,10 +95,10 @@ export default function TransactionListClient({ transactions }: Props) {
         break;
       case 'SIAP_DIAMBIL':
         result = {
-          icon: <FileText className="h-6 w-6 text-blue-600" />,
+          icon: <CheckCircle2 className="h-6 w-6 text-blue-600" />,
           bgIcon: 'bg-blue-50',
           badgeText: 'Siap Diambil',
-          badgeClass: 'bg-blue-50 text-blue-700',
+          badgeClass: 'bg-blue-50 text-blue-700 border border-blue-200',
           actionText: 'Selesaikan'
         };
         break;
@@ -174,79 +174,80 @@ export default function TransactionListClient({ transactions }: Props) {
             )}
           </div>
         ) : (
-          <div className="bg-slate-50 rounded-3xl p-5 border border-slate-100 shadow-sm space-y-6">
-            {filteredTransactions.map((tx, index) => {
+          <div className="space-y-4">
+            {filteredTransactions.map((tx) => {
               const display = getStatusDisplay(tx.status, tx.serviceType);
               return (
-                <div key={tx.id}>
-                  <div className="flex gap-4">
-                    {/* Avatar/Icon - Clickable to Receipt */}
-                    <Link href={`/transactions/receipt?invoice=${tx.invoiceNumber}`} className="flex-none">
-                      <div className={`flex h-12 w-12 items-center justify-center rounded-full ${display.bgIcon} hover:opacity-80 transition-opacity`}>
-                        {display.icon}
-                      </div>
-                    </Link>
-                    
-                    <div className="flex-1 min-w-0 flex flex-col justify-center">
-                      <div className="flex justify-between items-start mb-1">
-                        <Link href={`/transactions/receipt?invoice=${tx.invoiceNumber}`} className="hover:underline">
+                <div key={tx.id} className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm space-y-3">
+                  {/* Header Kartu */}
+                  <div className="flex justify-between items-start gap-3">
+                    <div className="flex items-start gap-3.5 min-w-0 flex-1">
+                      <Link href={`/transactions/receipt?id=${tx.id}`} className="flex-none">
+                        <div className={`flex h-11 w-11 items-center justify-center rounded-full ${display.bgIcon} hover:opacity-80 transition-opacity`}>
+                          {display.icon}
+                        </div>
+                      </Link>
+                      <div className="min-w-0 flex-1">
+                        <Link href={`/transactions/receipt?id=${tx.id}`} className="hover:underline">
                           <h4 className="font-semibold text-slate-900 truncate">{tx.customer.name}</h4>
                         </Link>
-                        <span className="text-xs text-slate-400 font-medium flex-none ml-2 text-right">
+                        <span className="text-xs text-slate-400 font-medium block mt-0.5">
                           {formatDateTime(tx.createdAt)}
                         </span>
                       </div>
-                      
-                      <p className="text-xs text-slate-500 mb-2 truncate">
-                        <Link href={`/transactions/receipt?invoice=${tx.invoiceNumber}`} className="text-blue-600 font-medium hover:underline">
-                          {tx.invoiceNumber}
-                        </Link>
-                        {' '}&middot; {tx.weight} Kg &middot; {tx.serviceType}
-                      </p>
-                      
-                      <div className="flex flex-wrap items-center justify-between gap-2 mt-1">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-medium shrink-0 ${display.badgeClass}`}>
-                          {display.badgeText}
-                        </span>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <UpdateStatusButton 
-                            transactionId={tx.id} 
-                            currentStatus={tx.status} 
-                            serviceType={tx.serviceType}
-                            actionText={display.actionText} 
-                          />
+                    </div>
+                    <span className={`inline-flex items-center px-2.5 py-0.5 text-xs font-semibold rounded-full shrink-0 ${display.badgeClass}`}>
+                      {display.badgeText}
+                    </span>
+                  </div>
 
-                          {/* Ikon WhatsApp Manual di samping Nota - HANYA jika status SIAP_DIAMBIL */}
-                          {tx.status === 'SIAP_DIAMBIL' && tx.customer.phone && (
-                            <a
-                              href={createWhatsAppUrl(
-                                tx.customer.phone,
-                                generatePickupMessage(tx.customer.name, tx.invoiceNumber)
-                              )}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-emerald-600 hover:text-emerald-700 p-1 rounded-lg hover:bg-emerald-50 transition-colors flex items-center justify-center"
-                              title="Kirim WhatsApp Pengambilan (Siap Diambil)"
-                            >
-                              <MessageCircle className="h-4 w-4" />
-                            </a>
+                  {/* Body Kartu (Margin kiri sejajar teks nama: h-11 (2.75rem) + gap-3.5 (0.875rem) = pl-[3.625rem]) */}
+                  <div className="pl-[3.625rem]">
+                    <p className="text-xs text-slate-500 truncate">
+                      <Link href={`/transactions/receipt?id=${tx.id}`} className="text-blue-600 font-medium hover:underline">
+                        {tx.invoiceNumber}
+                      </Link>
+                      {' '}&bull; {tx.weight} Kg &bull; {tx.serviceType}
+                    </p>
+                  </div>
+
+                  {/* Footer Kartu */}
+                  <div className="flex justify-between items-center pt-2.5 border-t border-gray-100">
+                    {/* Sisi Kiri: Tombol Outline Update Progres */}
+                    <div>
+                      <UpdateStatusButton 
+                        transactionId={tx.id} 
+                        currentStatus={tx.status} 
+                        serviceType={tx.serviceType}
+                        actionText={display.actionText} 
+                      />
+                    </div>
+
+                    {/* Sisi Kanan: Aksi WA Kondisional & Nota Digital */}
+                    <div className="flex items-center gap-1.5">
+                      {tx.status === 'SIAP_DIAMBIL' && tx.customer.phone && (
+                        <a
+                          href={createWhatsAppUrl(
+                            tx.customer.phone,
+                            generatePickupMessage(tx.customer.name, tx.invoiceNumber)
                           )}
-
-                          <Link 
-                            href={`/transactions/receipt?id=${tx.id}`} 
-                            target="_blank"
-                            className="text-slate-400 hover:text-blue-600 p-1 rounded-lg hover:bg-slate-100 transition-colors flex items-center justify-center"
-                            title="Lihat Nota Digital"
-                          >
-                            <Receipt className="h-4 w-4" />
-                          </Link>
-                        </div>
-                      </div>
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg border border-emerald-200 transition-colors flex items-center justify-center"
+                          title="Kirim Pengingat Siap Diambil via WhatsApp"
+                        >
+                          <MessageCircle className="h-4 w-4" />
+                        </a>
+                      )}
+                      <Link 
+                        href={`/transactions/receipt?id=${tx.id}`} 
+                        className="p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors flex items-center justify-center"
+                        title="Lihat Nota Digital"
+                      >
+                        <Receipt className="h-4 w-4" />
+                      </Link>
                     </div>
                   </div>
-                  {index < filteredTransactions.length - 1 && (
-                    <hr className="border-slate-100 mt-6" />
-                  )}
                 </div>
               );
             })}

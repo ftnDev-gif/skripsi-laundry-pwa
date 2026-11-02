@@ -55,11 +55,11 @@ export default function UpdateStatusButton({
     <button 
       onClick={handleUpdate}
       disabled={isPending}
-      className="text-[10px] font-medium text-blue-600 bg-blue-50 px-3 py-1 rounded-full hover:bg-blue-100 transition-colors disabled:opacity-50 flex items-center justify-center min-w-[80px]"
+      className="border-2 border-blue-600 text-blue-600 font-semibold bg-white rounded-lg px-3.5 py-1.5 text-xs md:text-sm hover:bg-blue-50 transition-colors disabled:opacity-50 flex items-center justify-center shrink-0"
     >
       {isPending ? (
-        <span className="flex items-center space-x-1">
-          <Loader2 className="h-3 w-3 animate-spin" />
+        <span className="flex items-center space-x-1.5">
+          <Loader2 className="h-3.5 w-3.5 animate-spin" />
           <span>Memproses...</span>
         </span>
       ) : (
