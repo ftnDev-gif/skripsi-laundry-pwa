@@ -19,6 +19,7 @@ export default function NewTransactionPage() {
   const [weight, setWeight] = useState<number | ''>('');
   const [serviceId, setServiceId] = useState('cuci_setrika');
   const [paymentStatus, setPaymentStatus] = useState('lunas');
+  const [physicalNotes, setPhysicalNotes] = useState('');
   
   // Customer Selection State
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -116,6 +117,9 @@ export default function NewTransactionPage() {
     formData.append('weight', weight.toString());
     formData.append('serviceId', serviceId);
     formData.append('paymentStatus', paymentStatus.toUpperCase());
+    if (physicalNotes.trim()) {
+      formData.append('physicalNotes', physicalNotes.trim());
+    }
     
     startTransition(async () => {
       try {
@@ -397,6 +401,8 @@ export default function NewTransactionPage() {
               <textarea 
                 rows={3}
                 name="physicalNotes"
+                value={physicalNotes}
+                onChange={(e) => setPhysicalNotes(e.target.value)}
                 placeholder="Contoh: Noda di bagian kerah, kancing lepas..." 
                 className="w-full rounded-xl border border-slate-200 bg-white py-3 px-4 text-sm text-slate-900 placeholder-slate-400 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 transition-colors resize-none"
               />

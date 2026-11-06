@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { Search, PackageOpen, FileText, Plus, Receipt, MessageCircle, CheckCircle2, Clock } from 'lucide-react';
-import { LaundryStatus } from '@prisma/client';
+import { LaundryStatus } from '@/lib/orderMapper';
 import UpdateStatusButton from '@/components/UpdateStatusButton';
 import { generatePickupMessage, createWhatsAppUrl } from '@/lib/whatsappTemplate';
 

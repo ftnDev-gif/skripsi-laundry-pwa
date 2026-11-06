@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { Clock, Droplets, Shirt, CheckCircle, MessageCircle, Phone, Sparkles, Check, AlertCircle } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
 import { notFound } from 'next/navigation';
-import { LaundryStatus } from '@prisma/client';
+import { LaundryStatus, mapOrderToTransactionView } from '@/lib/orderMapper';
 import HeaderBrand from '@/components/HeaderBrand';
 import FooterBrand from '@/components/FooterBrand';
 
@@ -47,10 +47,17 @@ export default async function TrackingPage({
 }) {
   const { id } = await params;
   
-  const transaction = await prisma.transaction.findUnique({
-    where: { invoiceNumber: id },
-    include: { customer: true },
+  const rawOrder = await prisma.order.findUnique({
+    where: { invoiceCode: id },
+    include: {
+      customer: true,
+      orderItems: {
+        include: { service: true },
+      },
+    },
   });
+
+  const transaction = rawOrder ? mapOrderToTransactionView(rawOrder) : null;
 
   if (!transaction) {
     return (

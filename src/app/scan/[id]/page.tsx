@@ -1,6 +1,7 @@
 import HeaderBrand from '@/components/HeaderBrand';
 import FooterBrand from '@/components/FooterBrand';
 import { prisma } from '@/lib/prisma';
+import { mapOrderToTransactionView } from '@/lib/orderMapper';
 import Link from 'next/link';
 import { ArrowLeft, ScanLine, Receipt, FileText } from 'lucide-react';
 import ScanClient from './ScanClient';
@@ -15,16 +16,24 @@ interface PageProps {
 export default async function ScanManagePage({ params }: PageProps) {
   const resolvedParams = await Promise.resolve(params);
   const idOrInvoice = resolvedParams.id;
+  const numericId = Number(idOrInvoice);
 
-  const transaction = await prisma.transaction.findFirst({
+  const rawOrder = await prisma.order.findFirst({
     where: {
       OR: [
-        { invoiceNumber: idOrInvoice },
-        { id: idOrInvoice }
-      ]
+        { invoiceCode: idOrInvoice },
+        ...(!Number.isNaN(numericId) ? [{ id: numericId }] : []),
+      ],
     },
-    include: { customer: true }
+    include: {
+      customer: true,
+      orderItems: {
+        include: { service: true },
+      },
+    },
   });
+
+  const transaction = rawOrder ? mapOrderToTransactionView(rawOrder) : null;
 
   if (!transaction) {
     return (

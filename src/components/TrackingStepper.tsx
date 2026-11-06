@@ -1,6 +1,6 @@
 import React from 'react';
 import { Clock, Droplets, Shirt, CheckCircle, Sparkles, Check } from 'lucide-react';
-import { LaundryStatus } from '@prisma/client';
+import { LaundryStatus } from '@/lib/orderMapper';
 
 interface TrackingStepperProps {
   serviceType: string;

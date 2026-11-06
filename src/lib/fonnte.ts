@@ -1,8 +1,14 @@
+import { formatWhatsAppPhone } from './whatsappTemplate';
+
 export async function sendWhatsAppMessage(target: string, message: string) {
-  // Check if WhatsApp notification is enabled
-  if (process.env.ENABLE_WHATSAPP_NOTIFICATION !== 'true') {
+  // Check if WhatsApp notification is explicitly disabled
+  if (process.env.ENABLE_WHATSAPP_NOTIFICATION === 'false') {
     console.log('Notifikasi WA dinonaktifkan via environment variable');
-    return { success: true, message: 'Notifikasi WA dinonaktifkan' };
+    return {
+      success: false,
+      disabled: true,
+      message: 'Notifikasi WA dinonaktifkan',
+    };
   }
 
   const apiToken = process.env.FONNTE_API_TOKEN;
@@ -12,15 +18,16 @@ export async function sendWhatsAppMessage(target: string, message: string) {
   }
 
   try {
+    const formattedTarget = formatWhatsAppPhone(target);
     const formData = new FormData();
-    formData.append('target', target);
+    formData.append('target', formattedTarget);
     formData.append('message', message);
     formData.append('countryCode', '62');
 
     const response = await fetch('https://api.fonnte.com/send', {
       method: 'POST',
       headers: {
-        'Authorization': apiToken,
+        Authorization: apiToken,
       },
       body: formData,
     });
@@ -31,7 +38,8 @@ export async function sendWhatsAppMessage(target: string, message: string) {
     }
 
     const data = await response.json();
-    return { success: true, data };
+    const isSuccess = data?.status !== false;
+    return { success: isSuccess, data };
   } catch (error: any) {
     console.error('Gagal mengirim pesan WhatsApp via Fonnte:', error.message);
     return { success: false, error: error.message };
@@ -39,4 +47,3 @@ export async function sendWhatsAppMessage(target: string, message: string) {
 }
 
 export * from './whatsappTemplate';
-

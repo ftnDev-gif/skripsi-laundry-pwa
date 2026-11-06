@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
-import { LaundryStatus } from '@prisma/client';
+import { LaundryStatus, mapOrderToTransactionView } from '@/lib/orderMapper';
 import UpdateStatusButton from '@/components/UpdateStatusButton';
 import { logoutKasir } from '@/actions/auth';
 import { generatePickupMessage, createWhatsAppUrl } from '@/lib/whatsappTemplate';
@@ -25,20 +25,33 @@ export const dynamic = 'force-dynamic';
 
 export default async function DashboardPage() {
   // Ambil transaksi terbaru (misal 5 transaksi terakhir)
-  const transactions = await prisma.transaction.findMany({
-    include: { customer: true },
-    orderBy: { createdAt: 'desc' },
-    take: 5
+  const rawOrders = await prisma.order.findMany({
+    include: {
+      customer: true,
+      orderItems: {
+        include: { service: true },
+      },
+    },
+    orderBy: { entryDate: 'desc' },
+    take: 5,
   });
+  const transactions = rawOrders.map(mapOrderToTransactionView);
 
   // Semua transaksi aktif untuk ringkasan (belum selesai)
-  const activeTransactions = await prisma.transaction.findMany({
+  const rawActiveOrders = await prisma.order.findMany({
     where: {
-      status: {
-        not: 'SELESAI'
-      }
-    }
+      orderStatus: {
+        not: 'selesai',
+      },
+    },
+    include: {
+      customer: true,
+      orderItems: {
+        include: { service: true },
+      },
+    },
   });
+  const activeTransactions = rawActiveOrders.map(mapOrderToTransactionView);
 
   const totalActiveWeight = activeTransactions.reduce((acc, curr) => acc + curr.weight, 0);
   const totalActiveIncome = activeTransactions.reduce((acc, curr) => acc + curr.totalPrice, 0);

@@ -1,17 +1,23 @@
 import { prisma } from '@/lib/prisma';
+import { mapOrderToTransactionView } from '@/lib/orderMapper';
 import ReportClient from './ReportClient';
 
 export const dynamic = 'force-dynamic';
 
 export default async function ReportsPage() {
-  const transactions = await prisma.transaction.findMany({
+  const rawOrders = await prisma.order.findMany({
     include: {
-      customer: true
+      customer: true,
+      orderItems: {
+        include: { service: true },
+      },
     },
     orderBy: {
-      createdAt: 'desc'
-    }
+      entryDate: 'desc',
+    },
   });
+
+  const transactions = rawOrders.map(mapOrderToTransactionView);
 
   return <ReportClient transactions={transactions} />;
 }

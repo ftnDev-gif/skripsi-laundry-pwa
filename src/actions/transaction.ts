@@ -2,191 +2,335 @@
 
 import { prisma } from '@/lib/prisma';
 import { redirect } from 'next/navigation';
-import { sendWhatsAppMessage, generateReceiptMessage, generatePickupMessage } from '@/lib/fonnte';
+import { revalidatePath } from 'next/cache';
+import { sendWhatsAppMessage } from '@/lib/fonnte';
+import { generateReceiptMessage, generatePickupMessage } from '@/lib/whatsappTemplate';
+import {
+  LaundryStatus,
+  mapOrderToTransactionView,
+  toDbOrderStatus,
+  toDbPaymentStatus,
+} from '@/lib/orderMapper';
+
+const DEFAULT_SERVICES: Record<
+  string,
+  { name: string; unit: string; price: number; estimatedDurationHours: number }
+> = {
+  cuci_setrika: {
+    name: 'Cuci & Setrika (Komplit)',
+    unit: 'kg',
+    price: 6000,
+    estimatedDurationHours: 24,
+  },
+  cuci_lipat: {
+    name: 'Cuci Lipat (Cuci Saja)',
+    unit: 'kg',
+    price: 4000,
+    estimatedDurationHours: 24,
+  },
+  setrika_saja: {
+    name: 'Setrika Saja',
+    unit: 'kg',
+    price: 3000,
+    estimatedDurationHours: 24,
+  },
+};
+
+async function resolveService(serviceIdentifier: string) {
+  const numericId = Number(serviceIdentifier);
+  if (!Number.isNaN(numericId) && numericId > 0) {
+    const byId = await prisma.service.findUnique({ where: { id: numericId } });
+    if (byId) return byId;
+  }
+
+  const preset =
+    DEFAULT_SERVICES[serviceIdentifier] || DEFAULT_SERVICES.cuci_setrika;
+
+  const existing = await prisma.service.findFirst({
+    where: { name: preset.name },
+  });
+
+  if (existing) {
+    return existing;
+  }
+
+  return await prisma.service.create({
+    data: {
+      name: preset.name,
+      unit: preset.unit,
+      price: preset.price,
+      estimatedDurationHours: preset.estimatedDurationHours,
+    },
+  });
+}
 
 export async function createTransaction(formData: FormData) {
-  const customerId = formData.get('customerId') as string;
-  const customerName = formData.get('customerName') as string;
-  const customerPhone = formData.get('customerPhone') as string;
+  const customerId = formData.get('customerId') as string | null;
+  const customerName = (formData.get('customerName') as string | null)?.trim() || '';
+  const customerPhone = (formData.get('customerPhone') as string | null)?.trim() || '';
+  const customerAddress = (formData.get('customerAddress') as string | null)?.trim() || null;
   const weight = parseFloat(formData.get('weight') as string);
-  const serviceId = formData.get('serviceId') as string;
-  const paymentStatus = formData.get('paymentStatus') as 'LUNAS' | 'KASBON';
-
-  const customerAddress = formData.get('customerAddress') as string | null;
+  const serviceId = (formData.get('serviceId') as string) || 'cuci_setrika';
+  const rawPaymentStatus = (formData.get('paymentStatus') as string) || 'LUNAS';
+  const physicalNotes =
+    ((formData.get('physicalNotes') || formData.get('notes')) as string | null)?.trim() || null;
 
   if (!weight || weight <= 0) {
     throw new Error('Berat tidak valid');
   }
 
-  // Get default user (cashier) from seeding
-  const defaultUser = await prisma.user.findFirst();
-  if (!defaultUser) {
-    throw new Error('Tidak ada user/kasir ditemukan. Lakukan seeding terlebih dahulu.');
+  if (!customerId && (!customerName || !customerPhone)) {
+    throw new Error('Nama dan nomor WhatsApp wajib diisi untuk pelanggan baru');
   }
 
-  // Handle Customer
-  let finalCustomerId = customerId;
-  if (!finalCustomerId) {
-    if (!customerName || !customerPhone) {
-      throw new Error('Nama dan nomor WhatsApp wajib diisi untuk pelanggan baru');
-    }
-    
-    // Check if phone already exists just in case
-    const existingCustomer = await prisma.customer.findUnique({
-      where: { phone: customerPhone }
-    });
+  const formattedPhone = customerPhone
+    ? customerPhone.startsWith('62')
+      ? customerPhone.replace(/\D/g, '')
+      : '62' + customerPhone.replace(/^0+/, '').replace(/\D/g, '')
+    : '';
 
-    if (existingCustomer) {
-      finalCustomerId = existingCustomer.id;
-    } else {
-      const newCustomer = await prisma.customer.create({
-        data: {
-          name: customerName,
-          phone: customerPhone,
-          address: customerAddress || null,
-        }
-      });
-      finalCustomerId = newCustomer.id;
-    }
-  }
+  // Pastikan layanan tersedia di tabel services
+  const serviceRecord = await resolveService(serviceId);
+  const unitPrice = Number(serviceRecord.price);
+  const subtotal = weight * unitPrice;
+  const totalPrice = subtotal;
 
-  // Service details (Hardcoded for now as in UI, ideally from DB if services were a table)
-  let serviceType = '';
-  let pricePerKg = 0;
-  if (serviceId === 'cuci_setrika') {
-    serviceType = 'Cuci & Setrika (Komplit)';
-    pricePerKg = 6000;
-  } else if (serviceId === 'cuci_lipat') {
-    serviceType = 'Cuci Lipat (Cuci Saja)';
-    pricePerKg = 4000;
-  } else if (serviceId === 'setrika_saja') {
-    serviceType = 'Setrika Saja';
-    pricePerKg = 3000;
-  }
-
-  const totalPrice = weight * pricePerKg;
-
-  // Generate Invoice Number (e.g. INV-YYYYMM-XXX)
+  // Generate Nomor Invoice (contoh: INV-YYYYMM-XXX)
   const now = new Date();
   const yearMonth = `${now.getFullYear()}${(now.getMonth() + 1).toString().padStart(2, '0')}`;
-  
-  // Count transactions this month
-  const countThisMonth = await prisma.transaction.count({
+
+  const countThisMonth = await prisma.order.count({
     where: {
-      invoiceNumber: {
-        startsWith: `INV-${yearMonth}`
-      }
-    }
+      invoiceCode: {
+        startsWith: `INV-${yearMonth}`,
+      },
+    },
   });
 
   const nextNumber = (countThisMonth + 1).toString().padStart(3, '0');
-  const invoiceNumber = `INV-${yearMonth}-${nextNumber}`;
+  const invoiceCode = `INV-${yearMonth}-${nextNumber}`;
 
-  const transaction = await prisma.transaction.create({
+  const estimatedCompletionDate = new Date(
+    now.getTime() + serviceRecord.estimatedDurationHours * 60 * 60 * 1000
+  );
+
+  const dbPaymentStatus = toDbPaymentStatus(rawPaymentStatus);
+
+  // Simpan Order beserta relasi Customer (connect / connectOrCreate) & OrderItem (nested write)
+  const order = await prisma.order.create({
     data: {
-      invoiceNumber,
-      userId: defaultUser.id,
-      customerId: finalCustomerId,
-      serviceType,
-      weight,
-      pricePerKg,
+      invoiceCode,
       totalPrice,
-      status: 'ANTREAN',
-      paymentStatus: paymentStatus,
+      paymentStatus: dbPaymentStatus,
+      orderStatus: 'antre',
+      qrCodePath: `/tracking/${invoiceCode}`,
+      entryDate: now,
+      estimatedCompletionDate,
+      notes: physicalNotes,
+      customer:
+        customerId && customerId !== 'new'
+          ? {
+              connect: { id: Number(customerId) },
+            }
+          : {
+              connectOrCreate: {
+                where: { phoneNumber: formattedPhone },
+                create: {
+                  name: customerName,
+                  phoneNumber: formattedPhone,
+                  address: customerAddress,
+                },
+              },
+            },
+      orderItems: {
+        create: [
+          {
+            serviceId: serviceRecord.id,
+            quantity: weight,
+            unitPrice,
+            subtotal,
+          },
+        ],
+      },
     },
     include: {
-      customer: true
-    }
+      customer: true,
+      orderItems: {
+        include: {
+          service: true,
+        },
+      },
+    },
   });
 
+  const mappedOrder = mapOrderToTransactionView(order);
+
+  // Kirim pesan WhatsApp & catat ke tabel notification_logs
   try {
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-    const trackingUrl = `${appUrl}/tracking/${transaction.invoiceNumber}`;
+    const trackingUrl = `${appUrl}/tracking/${order.invoiceCode}`;
     const waMessage = generateReceiptMessage({
-      customerName: transaction.customer.name,
-      invoiceNumber: transaction.invoiceNumber,
-      serviceType: transaction.serviceType,
-      weight: transaction.weight,
-      totalPrice: transaction.totalPrice,
+      customerName: order.customer.name,
+      invoiceNumber: order.invoiceCode,
+      serviceType: mappedOrder.serviceType,
+      weight: mappedOrder.weight,
+      totalPrice: mappedOrder.totalPrice,
       trackingUrl,
-      paymentStatus: transaction.paymentStatus,
+      paymentStatus: mappedOrder.paymentStatus,
     });
 
-    await sendWhatsAppMessage(transaction.customer.phone, waMessage);
+    const waResult = await sendWhatsAppMessage(order.customer.phoneNumber, waMessage);
+
+    await prisma.notificationLog.create({
+      data: {
+        orderId: order.id,
+        recipientPhone: order.customer.phoneNumber,
+        messageContent: waMessage,
+        status:
+          process.env.ENABLE_WHATSAPP_NOTIFICATION === 'false'
+            ? 'queued'
+            : waResult.success
+              ? 'sent'
+              : 'failed',
+        gatewayResponse: JSON.stringify(waResult),
+        sentAt: new Date(),
+      },
+    });
   } catch (error) {
     console.error('Terjadi kesalahan saat memproses notifikasi WhatsApp:', error);
   }
 
-  redirect(`/transactions/receipt?invoice=${transaction.invoiceNumber}`);
+  redirect(`/transactions/receipt?invoice=${order.invoiceCode}`);
 }
 
 export async function getCustomers() {
-  return await prisma.customer.findMany({
+  const customers = await prisma.customer.findMany({
     orderBy: { name: 'asc' },
-    select: {
-      id: true,
-      name: true,
-      phone: true,
-      address: true,
-    }
   });
+
+  return customers.map((c) => ({
+    id: String(c.id),
+    name: c.name,
+    phone: c.phoneNumber,
+    phoneNumber: c.phoneNumber,
+    address: c.address,
+  }));
 }
 
-export async function updateCustomerPhone(customerId: string, newPhone: string) {
+export async function getServices() {
+  const services = await prisma.service.findMany({
+    orderBy: { id: 'asc' },
+  });
+
+  return services.map((s) => ({
+    id: s.id,
+    name: s.name,
+    unit: s.unit,
+    price: Number(s.price),
+    estimatedDurationHours: s.estimatedDurationHours,
+  }));
+}
+
+export async function updateCustomerPhone(customerId: string | number, newPhone: string) {
   if (!newPhone) {
     throw new Error('Nomor telepon tidak boleh kosong');
   }
-  
+
+  const parsedCustomerId = Number(customerId);
   const formattedPhone = '62' + newPhone.replace(/^0+/, '').replace(/\D/g, '');
 
   const existingCustomer = await prisma.customer.findUnique({
-    where: { phone: formattedPhone },
+    where: { phoneNumber: formattedPhone },
   });
 
-  if (existingCustomer && existingCustomer.id !== customerId) {
+  if (existingCustomer && existingCustomer.id !== parsedCustomerId) {
     throw new Error('Nomor WhatsApp ini sudah digunakan oleh pelanggan lain');
   }
 
   const updatedCustomer = await prisma.customer.update({
-    where: { id: customerId },
-    data: { phone: formattedPhone },
-    select: { id: true, name: true, phone: true }
+    where: { id: parsedCustomerId },
+    data: { phoneNumber: formattedPhone },
   });
 
-  return updatedCustomer;
+  return {
+    id: String(updatedCustomer.id),
+    name: updatedCustomer.name,
+    phone: updatedCustomer.phoneNumber,
+    phoneNumber: updatedCustomer.phoneNumber,
+  };
 }
 
-import { LaundryStatus } from '@prisma/client';
-import { revalidatePath } from 'next/cache';
-
-export async function updateTransactionStatus(transactionId: string, nextStatus: LaundryStatus) {
+export async function updateTransactionStatus(
+  transactionId: string | number,
+  nextStatus: LaundryStatus | string
+) {
   if (!transactionId || !nextStatus) {
     throw new Error('Transaction ID dan Status baru wajib diisi');
   }
 
-  const transaction = await prisma.transaction.update({
-    where: { id: transactionId },
-    data: { status: nextStatus },
+  const dbStatus = toDbOrderStatus(nextStatus);
+  const numericId = Number(transactionId);
+  const whereClause =
+    !Number.isNaN(numericId) && numericId > 0
+      ? { id: numericId }
+      : { invoiceCode: String(transactionId) };
+
+  const order = await prisma.order.update({
+    where: whereClause,
+    data: {
+      orderStatus: dbStatus,
+      ...(dbStatus === 'selesai' ? { pickedUpAt: new Date() } : {}),
+    },
     include: {
       customer: true,
+      orderItems: {
+        include: {
+          service: true,
+        },
+      },
     },
   });
 
-  // Kirim WhatsApp otomatis hanya jika status berubah ke SIAP_DIAMBIL dan notifikasi diaktifkan
-  if (nextStatus === 'SIAP_DIAMBIL' && process.env.ENABLE_WHATSAPP_NOTIFICATION === 'true') {
+  // Kirim WhatsApp otomatis & catat ke notification_logs saat status berubah menjadi SIAP_DIAMBIL
+  const isSiapDiambil =
+    dbStatus === 'siap_diambil' ||
+    String(nextStatus).toUpperCase() === 'SIAP_DIAMBIL';
+
+  if (isSiapDiambil && order.customer?.phoneNumber) {
     try {
-      const message = generatePickupMessage(transaction.customer.name, transaction.invoiceNumber);
-      await sendWhatsAppMessage(transaction.customer.phone, message);
-    } catch (error) {
-      console.error('Gagal mengirim pesan WhatsApp otomatis via Fonnte:', error);
+      const message = generatePickupMessage({
+        customerName: order.customer.name,
+        invoiceNumber: order.invoiceCode,
+      });
+
+      const waResult = await sendWhatsAppMessage(order.customer.phoneNumber, message);
+
+      await prisma.notificationLog.create({
+        data: {
+          orderId: order.id,
+          recipientPhone: order.customer.phoneNumber,
+          messageContent: message,
+          status:
+            process.env.ENABLE_WHATSAPP_NOTIFICATION === 'false'
+              ? 'queued'
+              : waResult.success
+                ? 'sent'
+                : 'failed',
+          gatewayResponse: JSON.stringify(waResult),
+          sentAt: new Date(),
+        },
+      });
+    } catch (error: any) {
+      console.error('Gagal mengirim atau mencatat pesan WhatsApp otomatis (Siap Diambil):', error);
     }
   }
 
-  // Revalidasi halaman dashboard, daftar transaksi, dan tracking agar UI terbarui
+  // Revalidasi halaman dashboard, daftar transaksi, laporan, dan tracking agar UI terbarui
   revalidatePath('/dashboard');
   revalidatePath('/transactions');
+  revalidatePath('/reports');
   revalidatePath('/scan/[id]', 'page');
   revalidatePath('/tracking/[id]', 'page');
 
-  return transaction;
+  return mapOrderToTransactionView(order);
 }

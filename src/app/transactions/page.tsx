@@ -1,6 +1,7 @@
 import HeaderBrand from '@/components/HeaderBrand';
 import FooterBrand from '@/components/FooterBrand';
 import { prisma } from '@/lib/prisma';
+import { mapOrderToTransactionView } from '@/lib/orderMapper';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import TransactionListClient from './TransactionListClient';
@@ -8,11 +9,17 @@ import TransactionListClient from './TransactionListClient';
 export const dynamic = 'force-dynamic';
 
 export default async function TransactionsPage() {
-  // Ambil semua transaksi
-  const transactions = await prisma.transaction.findMany({
-    include: { customer: true },
-    orderBy: { createdAt: 'desc' }
+  // Ambil semua transaksi dari tabel orders beserta relasi customer & orderItems
+  const rawOrders = await prisma.order.findMany({
+    include: {
+      customer: true,
+      orderItems: {
+        include: { service: true },
+      },
+    },
+    orderBy: { entryDate: 'desc' },
   });
+  const transactions = rawOrders.map(mapOrderToTransactionView);
 
   return (
     <div className="min-h-screen w-full bg-slate-50 flex justify-center py-6 px-4">

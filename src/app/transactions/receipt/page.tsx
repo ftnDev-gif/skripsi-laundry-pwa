@@ -1,5 +1,6 @@
 import React from 'react';
 import { prisma } from '@/lib/prisma';
+import { mapOrderToTransactionView } from '@/lib/orderMapper';
 import { notFound } from 'next/navigation';
 import { Droplets } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
@@ -18,19 +19,29 @@ export default async function ReceiptPage({
     notFound();
   }
 
-  const transaction = await prisma.transaction.findFirst({
+  const numericId = id ? Number(id) : NaN;
+
+  const rawOrder = await prisma.order.findFirst({
     where: {
       OR: [
-        ...(invoice ? [{ invoiceNumber: invoice }] : []),
-        ...(id ? [{ id: id }] : []),
+        ...(invoice ? [{ invoiceCode: invoice }] : []),
+        ...(id && !Number.isNaN(numericId) ? [{ id: numericId }] : []),
+        ...(id && Number.isNaN(numericId) ? [{ invoiceCode: id }] : []),
       ],
     },
-    include: { customer: true },
+    include: {
+      customer: true,
+      orderItems: {
+        include: { service: true },
+      },
+    },
   });
 
-  if (!transaction) {
+  if (!rawOrder) {
     notFound();
   }
+
+  const transaction = mapOrderToTransactionView(rawOrder);
 
   // Generate tracking URL based on current host
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || (typeof window !== 'undefined' ? window.location.origin : '');

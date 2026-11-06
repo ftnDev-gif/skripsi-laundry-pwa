@@ -1,7 +1,7 @@
 'use client';
 
 import { useTransition } from 'react';
-import { LaundryStatus } from '@prisma/client';
+import { LaundryStatus } from '@/lib/orderMapper';
 import { updateTransactionStatus } from '@/actions/transaction';
 import { Loader2 } from 'lucide-react';
 
