@@ -40,7 +40,7 @@ export const getStepsForService = (serviceType: string) => {
 
 export default function TrackingStepper({ serviceType, status }: TrackingStepperProps) {
   const steps = getStepsForService(serviceType);
-  let currentStep = steps.findIndex(s => s.id === status);
+  let currentStep = steps.findIndex((s: any) => s.id === status);
   
   if (currentStep === -1) {
     if (status === LaundryStatus.DICUCI) currentStep = 0;
@@ -78,7 +78,7 @@ export default function TrackingStepper({ serviceType, status }: TrackingStepper
             </div>
 
             <div className="flex justify-between relative">
-              {steps.map((step, index) => {
+              {steps.map((step: any, index: number) => {
                 const isCompleted = index < currentStep;
                 const isActive = index === currentStep;
                 const isFuture = index > currentStep;

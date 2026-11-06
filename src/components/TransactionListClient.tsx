@@ -33,7 +33,7 @@ export default function TransactionListClient({ transactions }: Props) {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'Semua' | 'Proses' | 'Selesai'>('Semua');
 
-  const filteredTransactions = transactions.filter(tx => {
+  const filteredTransactions = transactions.filter((tx: Transaction) => {
     const matchesSearch = 
       tx.customer.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
       tx.invoiceNumber.toLowerCase().includes(searchQuery.toLowerCase());
@@ -175,7 +175,7 @@ export default function TransactionListClient({ transactions }: Props) {
           </div>
         ) : (
           <div className="space-y-4">
-            {filteredTransactions.map((tx) => {
+            {filteredTransactions.map((tx: Transaction) => {
               const display = getStatusDisplay(tx.status, tx.serviceType);
               return (
                 <div key={tx.id} className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm space-y-3">

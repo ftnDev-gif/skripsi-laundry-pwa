@@ -54,7 +54,7 @@ export default function ReportClient({ transactions }: { transactions: any[] }) 
   let totalBebanKg = 0;
   const kasbonCustomerIds = new Set<string>();
 
-  filteredTransactions.forEach(t => {
+  filteredTransactions.forEach((t: any) => {
     if (t.paymentStatus === 'LUNAS') {
       totalPendapatan += t.totalPrice;
       totalBebanKg += t.weight;
@@ -68,7 +68,7 @@ export default function ReportClient({ transactions }: { transactions: any[] }) 
 
   // List transaksi (apply kasbon filter)
   const displayedTransactions = isKasbonOnly 
-    ? filteredTransactions.filter(t => t.paymentStatus === 'KASBON') 
+    ? filteredTransactions.filter((t: any) => t.paymentStatus === 'KASBON') 
     : filteredTransactions;
 
   // Teks indikator bulan dinamis
@@ -220,7 +220,7 @@ export default function ReportClient({ transactions }: { transactions: any[] }) 
             {displayedTransactions.length === 0 ? (
               <div className="text-center py-6 text-slate-400 text-sm">Belum ada transaksi.</div>
             ) : (
-              displayedTransactions.map((t) => {
+              displayedTransactions.map((t: any) => {
                 const isLunas = t.paymentStatus === 'LUNAS';
                 
                 const dateStr = new Date(t.createdAt).toLocaleDateString('id-ID', {

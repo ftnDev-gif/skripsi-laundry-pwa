@@ -17,7 +17,7 @@ export default async function ReportsPage() {
     },
   });
 
-  const transactions = rawOrders.map(mapOrderToTransactionView);
+  const transactions = rawOrders.map((order: any) => mapOrderToTransactionView(order));
 
   return <ReportClient transactions={transactions} />;
 }

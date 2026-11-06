@@ -1,6 +1,13 @@
 import { PrismaClient } from '@prisma/client';
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient() as PrismaClient & {
+  user: any;
+  customer: any;
+  service: any;
+  order: any;
+  orderItem: any;
+  notificationLog: any;
+};
 
 async function main() {
   // 1. Akun Kasir Default (users)
@@ -37,7 +44,7 @@ async function main() {
     },
   ];
 
-  const seededServices = [];
+  const seededServices: Array<{ id: number; name: string; unit: string; price: any }> = [];
   for (const svc of defaultServices) {
     const existing = await prisma.service.findFirst({
       where: { name: svc.name },
@@ -117,7 +124,7 @@ async function main() {
 }
 
 main()
-  .catch((e) => {
+  .catch((e: unknown) => {
     console.error(e);
     process.exit(1);
   })

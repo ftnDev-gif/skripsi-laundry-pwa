@@ -79,7 +79,7 @@ export default async function TrackingPage({
   }
 
   const steps = getStepsForService(transaction.serviceType);
-  let currentStep = steps.findIndex(s => s.id === transaction.status);
+  let currentStep = steps.findIndex((s: any) => s.id === transaction.status);
   
   // Jika status saat ini ternyata adalah tahap yang di-skip (misal 'DICUCI' pada Setrika Saja), 
   // kita fallback ke tahap sebelumnya atau set 0.
@@ -175,7 +175,7 @@ export default async function TrackingPage({
                 </div>
 
                 <div className="flex justify-between relative">
-                  {steps.map((step, index) => {
+                  {steps.map((step: any, index: number) => {
                     const isCompleted = index < currentStep;
                     const isActive = index === currentStep;
                     const isFuture = index > currentStep;

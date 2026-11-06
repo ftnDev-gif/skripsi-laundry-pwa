@@ -208,7 +208,7 @@ export async function getCustomers() {
     orderBy: { name: 'asc' },
   });
 
-  return customers.map((c) => ({
+  return customers.map((c: any) => ({
     id: String(c.id),
     name: c.name,
     phone: c.phoneNumber,
@@ -222,7 +222,7 @@ export async function getServices() {
     orderBy: { id: 'asc' },
   });
 
-  return services.map((s) => ({
+  return services.map((s: any) => ({
     id: s.id,
     name: s.name,
     unit: s.unit,

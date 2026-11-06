@@ -19,7 +19,7 @@ export default async function TransactionsPage() {
     },
     orderBy: { entryDate: 'desc' },
   });
-  const transactions = rawOrders.map(mapOrderToTransactionView);
+  const transactions = rawOrders.map((order: any) => mapOrderToTransactionView(order));
 
   return (
     <div className="min-h-screen w-full bg-slate-50 flex justify-center py-6 px-4">

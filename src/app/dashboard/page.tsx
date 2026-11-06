@@ -35,7 +35,7 @@ export default async function DashboardPage() {
     orderBy: { entryDate: 'desc' },
     take: 5,
   });
-  const transactions = rawOrders.map(mapOrderToTransactionView);
+  const transactions = rawOrders.map((order: any) => mapOrderToTransactionView(order));
 
   // Semua transaksi aktif untuk ringkasan (belum selesai)
   const rawActiveOrders = await prisma.order.findMany({
@@ -51,10 +51,10 @@ export default async function DashboardPage() {
       },
     },
   });
-  const activeTransactions = rawActiveOrders.map(mapOrderToTransactionView);
+  const activeTransactions = rawActiveOrders.map((order: any) => mapOrderToTransactionView(order));
 
-  const totalActiveWeight = activeTransactions.reduce((acc, curr) => acc + curr.weight, 0);
-  const totalActiveIncome = activeTransactions.reduce((acc, curr) => acc + curr.totalPrice, 0);
+  const totalActiveWeight = activeTransactions.reduce((acc: number, curr: any) => acc + curr.weight, 0);
+  const totalActiveIncome = activeTransactions.reduce((acc: number, curr: any) => acc + curr.totalPrice, 0);
 
   // Format currency
   const formatCurrency = (amount: number) => {
@@ -277,7 +277,7 @@ export default async function DashboardPage() {
               </div>
             ) : (
               <div className="space-y-4">
-                {transactions.map((tx) => {
+                {transactions.map((tx: any) => {
                   const display = getStatusDisplay(tx.status, tx.serviceType);
                   return (
                     <div key={tx.id} className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm space-y-3">
